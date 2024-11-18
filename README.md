@@ -16,7 +16,7 @@ Kami dari kelompok C-03 yang beranggotakan:
 ## 📜 Deskripsi Aplikasi
 CarXpert lahir dari kebutuhan masyarakat Jakarta akan akses informasi yang lebih baik dalam mencari mobil bekas. Di tengah meningkatnya mobilitas dan tuntutan ekonomi, banyak orang yang beralih ke opsi mobil bekas sebagai solusi kendaraan pribadi yang lebih terjangkau. Namun, dengan banyaknya pilihan yang tersedia, mencari mobil bekas yang sesuai dengan kebutuhan dan anggaran bisa menjadi tantangan tersendiri.
 
-Website ini bertujuan untuk menjadi sumber informasi terpercaya bagi pengguna yang ingin membeli mobil bekas. Dengan menyediakan data yang lengkap dan transparan tentang berbagai produk mobil bekas, CarXpert membantu pengguna membuat keputusan yang lebih baik. Melalui CarXpert, pengguna tidak hanya dapat menemukan mobil bekas dengan mudah, tetapi juga mendapatkan wawasan tentang tren pasar otomotif terkini. Dengan demikian, website ini tidak hanya bermanfaat bagi mereka yang mencari mobil, tetapi juga membantu penjual dalam menjangkau calon pembeli yang lebih luas. CarXpert berkomitmen untuk memberikan pengalaman pencarian mobil bekas yang lebih baik bagi masyarakat Jakarta.
+aplikasi ini bertujuan untuk menjadi sumber informasi terpercaya bagi pengguna yang ingin membeli mobil bekas. Dengan menyediakan data yang lengkap dan transparan tentang berbagai produk mobil bekas, CarXpert membantu pengguna membuat keputusan yang lebih baik. Melalui CarXpert, pengguna tidak hanya dapat menemukan mobil bekas dengan mudah, tetapi juga mendapatkan wawasan tentang tren pasar otomotif terkini. Dengan demikian, aplikasi ini tidak hanya bermanfaat bagi mereka yang mencari mobil, tetapi juga membantu penjual dalam menjangkau calon pembeli yang lebih luas. CarXpert berkomitmen untuk memberikan pengalaman pencarian mobil bekas yang lebih baik bagi masyarakat Jakarta.
 
 ## 📚 Daftar Modul
 ### 1) Fitur Booking Jadwal dengan Showroom📝 (Argya Farel Kasyara)
@@ -33,7 +33,7 @@ Membandingkan beberapa mobil bekas secara berdampingan. Fitur ini membantu calon
 
 ## 🕵️ *Role* atau Peran Pengguna 
 ### 1. 👤 Guest (Pengguna yang tidak login)
-- Guest adalah pengunjung website yang belum mendaftar atau login. Mereka dapat menelusuri daftar mobil bekas yang tersedia, menggunakan fitur pencarian, serta menyaring mobil berdasarkan kategori seperti harga, jarak tempuh, dan tahun pembuatan. Guest juga bisa membandingkan produk mobil bekas. Selain itu, mereka bisa melihat detail mobil dan membaca berita otomotif . Namun, Guest tidak dapat menambahkan mobil ke daftar favorit, membooking jadwal untuk pergi ke showroom dan menyimpan perbandingan produk mobil bekas. Untuk mengakses fitur tersebut, mereka perlu mendaftar atau login ke dalam akun pengguna.
+- Guest adalah pengunjung aplikasi yang belum mendaftar atau login. Mereka dapat menelusuri daftar mobil bekas yang tersedia, menggunakan fitur pencarian, serta menyaring mobil berdasarkan kategori seperti harga, jarak tempuh, dan tahun pembuatan. Guest juga bisa membandingkan produk mobil bekas. Selain itu, mereka bisa melihat detail mobil dan membaca berita otomotif . Namun, Guest tidak dapat menambahkan mobil ke daftar favorit, membooking jadwal untuk pergi ke showroom dan menyimpan perbandingan produk mobil bekas. Untuk mengakses fitur tersebut, mereka perlu mendaftar atau login ke dalam akun pengguna.
 
 ### 2. 👨‍💻 User (Pengguna yang login)
 - User ini mencari mobil bekas di Jakarta sesuai dengan kebutuhan mereka. User dapat menggunakan fitur pencarian untuk menemukan mobil berdasarkan kategori seperti harga, jarak tempuh, dan tahun pembuatan. Mereka dapat melihat detail mobil, menambahkan mobil ke daftar favorit, dapat membooking jadwal untuk ke showroom serta menggunakan fitur membandingkan produk mobil. Selain itu, pengguna juga dapat tetap mendapatkan berita terbaru mengenai dunia otomotif.
@@ -45,8 +45,8 @@ Membandingkan beberapa mobil bekas secara berdampingan. Fitur ini membantu calon
 *Dataset* yang kami gunakan bersumber dari https://www.kaggle.com/datasets/adhiwirahardi/used-car-data-in-dki-jakarta  
 
 ## Alur Pengintegrasian dengan Web Service untuk Terhubung dengan Aplikasi Web yang Sudah dibuat saat Proyek Tengah Semester
-1. Menambahkan depedensi `http` dengan menjalankan perintah `flutter pub add http` pada terminal proyek agar dapat digunakan untuk bertukar HTTP Request.
-2. Membuat model yang sesuai dengan respons JSON dari *web service*, kami menggunakan QuickType untuk membantu pembuatan model-model *app* kami (tercantum pada direktori models).
-3. Untuk menyesuaikan *return* yang dibutuhkan *app* yang dibuat, kami memodifikasi beberapa *views code web service* kami (proyek PTS Django).
-4. Data yang didapat kemudian diolah atau dipetakan ke dalam suatu struktur data, baik `Map` maupun `List`. Kemudian, data yang sudah dikonversi ke aplimasi ditampilkan melalui `FutureBuilder`.
+1. Menambahkan dependensi `http` ke proyek dengan menjalankan perintah `flutter pub add http` di terminal untuk memungkinkan pengiriman dan penerimaan HTTP Request.  
+2. Buat model yang sesuai dengan struktur JSON dari *web service*. Untuk mempermudah proses ini, kami menggunakan QuickType, dan model-model tersebut disimpan di direktori `models`.  
+3. Modifikasi beberapa *views* pada *web service* Django (proyek PTS) untuk menyesuaikan data yang dibutuhkan oleh aplikasi.  
+4. Data yang diperoleh dari *web service* diolah dan dipetakan ke dalam struktur data seperti `Map` atau `List`. Selanjutnya, data yang sudah diubah ditampilkan menggunakan `FutureBuilder`.
 
