@@ -3,10 +3,6 @@
 
 > Proyek ini dibuat untuk memenuhi tugas Proyek Akhir Semester (PAS) pada mata kuliah Pemrograman Berbasis Platform yang diselenggarakan oleh Fakultas Ilmu Komputer, Universitas Indonesia Tahun Ajaran 2024/2025 Semester Gasal.
 
-<p align="center">
-  <img src="static/images/logoreadme.png" alt="Logo" width="300" />
-</p>
-
 ## 👥 Anggota Kelompok
 Kami dari kelompok C-03 yang beranggotakan:
 | Nama | NPM | 
