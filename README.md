@@ -1,5 +1,6 @@
 # Car-Xpertmobile
 > 
+> Berikut link Design kami : https://www.figma.com/design/ZQSBcuq5IltbuaxHMdvBOl/CarExpert?node-id=0-1&t=DKDONRoMDUi4b3ic-1
 
 > Proyek ini dibuat untuk memenuhi tugas Proyek Akhir Semester (PAS) pada mata kuliah Pemrograman Berbasis Platform yang diselenggarakan oleh Fakultas Ilmu Komputer, Universitas Indonesia Tahun Ajaran 2024/2025 Semester Gasal.
 
