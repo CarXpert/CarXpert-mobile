@@ -4,6 +4,7 @@ import 'package:car_xpert/screens/authentication/register.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:car_xpert/screens/news/newsarticles.dart';
+import 'package:car_xpert/screens/comparecars/list_compare.dart';
 
 void main() {
   runApp(const LoginApp());
