@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:car_xpert/screens/wishlist/wishlistpage.dart'; 
+import 'package:car_xpert/screens/wishlist/wishlistpage.dart';  
+import 'package:car_xpert/screens/comparecars/compare.dart'; 
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,18 +16,21 @@ class _HomeScreenState extends State<HomeScreen> {
     const Center(child: Text("Home Page", style: TextStyle(fontSize: 18))),
     const Center(child: Text("Bookings Page", style: TextStyle(fontSize: 18))),
     const Center(child: Text("Placeholder for Wishlist")),
-    const Center(child: Text("Compare Page", style: TextStyle(fontSize: 18))),
+    const Center(child: Text("Placeholder for Compare Page")),
   ];
 
   void _onItemTapped(int index) {
     if (index == 2) {
-      // Jika klik Wishlist, navigasi ke WishlistPage
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const WishlistPage()),
       );
+    } else if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => CarComparisonPage()), // Navigasi ke compare.dart
+      );
     } else {
-      // Halaman lainnya tetap menggunakan _pages
       setState(() {
         _currentIndex = index;
       });

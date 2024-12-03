@@ -1,164 +1,202 @@
 import 'package:flutter/material.dart';
-import 'package:car_xpert/models/comparecars.dart'; // Impor model CompareCar
+import 'package:car_xpert/models/comparecarslist.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:car_xpert/screens/authentication/login.dart';
 
-class ListCompareScreen extends StatefulWidget {
-  const ListCompareScreen({super.key});
-
+class ViewAllComparisonPage extends StatefulWidget {
   @override
-  _ListCompareScreenState createState() => _ListCompareScreenState();
+  _ViewAllComparisonPageState createState() => _ViewAllComparisonPageState();
 }
 
-class _ListCompareScreenState extends State<ListCompareScreen> {
-  List<CompareCar> comparisonList = [];  // List untuk menyimpan data perbandingan mobil
-  String sortOrder = 'newest';  // Pengurutan berdasarkan newest atau oldest
+class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
+  List<CompareCarList> comparisons = [];
+  String sortOrder = "newest"; // Variabel untuk menyimpan urutan pengurutan
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchComparisonList();
+    final request = context.read<CookieRequest>();
+    if (request.loggedIn) {
+      fetchComparisons();
+    } else {
+      // Arahkan pengguna ke halaman login jika belum login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    }
   }
 
-  // Fungsi untuk memuat daftar perbandingan mobil
-  Future<void> _fetchComparisonList() async {
-    // Simulasi pemuatan data dari server
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      comparisonList = [
-        CompareCar(
-          model: "Car Comparison Model 1",
-          pk: 1,
-          fields: Fields(comparecar: 1, user: 1),
-        ),
-        CompareCar(
-          model: "Car Comparison Model 2",
-          pk: 2,
-          fields: Fields(comparecar: 2, user: 1),
-        ),
-      ];
-    });
-  }
 
-  // Fungsi untuk menampilkan dialog konfirmasi hapus perbandingan
-  void _deleteComparison(int id) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Comparison'),
-          content: const Text('Are you sure you want to delete this comparison?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  comparisonList.removeWhere((item) => item.pk == id);
-                });
-                Navigator.of(context).pop();
-              },
-              child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('No'),
-            ),
-          ],
-        );
-      },
+  Future<void> fetchComparisons() async {
+  try {
+    // Ambil instance CookieRequest
+    final request = context.read<CookieRequest>();
+
+    // Kirim permintaan dengan cookie sesi
+    final response = await request.get(
+      "http://127.0.0.1:8000/comparecars/list-comparisons/json/",
     );
-  }
 
-  // Fungsi untuk mengurutkan daftar berdasarkan urutan yang dipilih
-  void _sortComparisons() {
+    if (response != null) {
+      setState(() {
+        // Akses langsung data response tanpa `.body`
+        comparisons = compareCarListFromJson(jsonEncode(response));
+        isLoading = false;
+      });
+    } else {
+      throw Exception("Failed to load comparisons.");
+    }
+  } catch (e) {
     setState(() {
-      if (sortOrder == 'newest') {
-        comparisonList.sort((a, b) => b.pk.compareTo(a.pk)); // Urutkan berdasarkan pk, descending
-      } else {
-        comparisonList.sort((a, b) => a.pk.compareTo(b.pk)); // Urutkan berdasarkan pk, ascending
-      }
+      isLoading = false;
     });
+    print("Error: $e");
+  }
+}
+
+
+
+
+  void changeSortOrder(String newSortOrder) {
+    setState(() {
+      sortOrder = newSortOrder;
+      isLoading = true;
+    });
+    fetchComparisons();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Comparison List'),
+        title: Text("All Comparisons"),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              // Navigasi ke halaman penambahan perbandingan baru
-            },
+          PopupMenuButton<String>(
+            onSelected: (value) => changeSortOrder(value),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: "newest",
+                child: Text("Newest"),
+              ),
+              PopupMenuItem(
+                value: "oldest",
+                child: Text("Oldest"),
+              ),
+            ],
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : comparisons.isEmpty
+              ? Center(child: Text("No comparisons available"))
+              : ListView.builder(
+                  padding: EdgeInsets.all(12.0),
+                  itemCount: comparisons.length,
+                  itemBuilder: (context, index) {
+                    final comparison = comparisons[index];
+                    return ComparisonCard(
+                      comparison: comparison,
+                      onDelete: () => deleteComparison(comparison.id),
+                    );
+                  },
+                ),
+    );
+  }
+
+  Future<void> deleteComparison(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('http://127.0.0.1:8000/comparecars/delete-comparison/$id/'),
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          comparisons.removeWhere((comparison) => comparison.id == id);
+        });
+      } else {
+        print("Error: Failed to delete comparison. Status code: ${response.statusCode}");
+        throw Exception('Failed to delete comparison');
+      }
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+}
+
+class ComparisonCard extends StatelessWidget {
+  final CompareCarList comparison;
+  final VoidCallback onDelete;
+
+  const ComparisonCard({
+    required this.comparison,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 8.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dropdown untuk memilih urutan
             Row(
               children: [
-                const Text('Sort By: '),
-                DropdownButton<String>(
-                  value: sortOrder,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      sortOrder = newValue!;
-                      _sortComparisons();
-                    });
-                  },
-                  items: <String>['newest', 'oldest']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
+                Expanded(
+                  child: Text(
+                    comparison.title ?? 'No Title',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: onDelete,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            // Daftar perbandingan mobil
-            Expanded(
-              child: comparisonList.isNotEmpty
-                  ? ListView.builder(
-                      itemCount: comparisonList.length,
-                      itemBuilder: (context, index) {
-                        final compareCar = comparisonList[index];
-
-                        return Dismissible(
-                          key: Key(compareCar.pk.toString()),
-                          onDismissed: (direction) {
-                            _deleteComparison(compareCar.pk);
-                          },
-                          background: Container(color: Colors.red),
-                          child: Card(
-                            elevation: 4,
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(16.0),
-                              title: Text(compareCar.model),
-                              subtitle: Text(
-                                  'Compare car ID: ${compareCar.pk}'),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  _deleteComparison(compareCar.pk);
-                                },
-                              ),
-                              onTap: () {
-                                // Tindakan saat item perbandingan ditekan
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                  : const Center(
-                      child: Text('No saved comparisons yet.'),
-                    ),
+            SizedBox(height: 8.0),
+            Row(
+              children: [
+                Expanded(
+                  child: Image.network(
+                    'https://your-static-url.com/images/${comparison.car1.brand}.png',
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.image_not_supported, size: 80, color: Colors.grey);
+                    },
+                  ),
+                ),
+                SizedBox(width: 8.0),
+                Expanded(
+                  child: Image.network(
+                    'https://your-static-url.com/images/${comparison.car2.brand}.png',
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.image_not_supported, size: 80, color: Colors.grey);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              '${comparison.car1.brand} (${comparison.car1.model}) vs ${comparison.car2.brand} (${comparison.car2.model})',
+              style: TextStyle(fontSize: 14),
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              'Date Added: ${comparison.dateAdded.toLocal()}',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
