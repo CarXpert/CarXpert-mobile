@@ -5,7 +5,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:car_xpert/screens/news/newsarticles.dart';
 import 'package:car_xpert/screens/comparecars/list_compare.dart';
-
+import 'package:car_xpert/widgets/navbar.dart';
 void main() {
   runApp(const LoginApp());
 }
@@ -114,7 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => WishlistPage()),
+                                builder: (context) => HomeScreen()),
                           );
                           ScaffoldMessenger.of(context)
                             ..hideCurrentSnackBar()
