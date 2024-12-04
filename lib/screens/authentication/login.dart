@@ -1,11 +1,13 @@
-import 'package:car_xpert/screens/wishlist/wishlistpage.dart';
+// car_xpert/screens/authentication/login.dart
+
 import 'package:flutter/material.dart';
 import 'package:car_xpert/screens/authentication/register.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:car_xpert/screens/news/newsarticles.dart';
-import 'package:car_xpert/screens/comparecars/list_compare.dart';
-import 'package:car_xpert/widgets/navbar.dart';
+import 'package:car_xpert/screens/mainpage/homescreen.dart'; // Perbarui impor
+import 'package:car_xpert/screens/wishlist/wishlistpage.dart';
+import 'package:car_xpert/screens/comparecars/compare.dart'; 
+
 void main() {
   runApp(const LoginApp());
 }
@@ -114,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => HomeScreen()),
+                                builder: (context) => const HomeScreen()),
                           );
                           ScaffoldMessenger.of(context)
                             ..hideCurrentSnackBar()
