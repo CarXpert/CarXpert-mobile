@@ -1,5 +1,6 @@
 // car_xpert/screens/mainpage/homescreen.dart
 
+import 'package:car_xpert/screens/news/newsarticles.dart';
 import 'package:flutter/material.dart';
 import 'package:car_xpert/widgets/navbar.dart';
 import 'package:car_xpert/screens/wishlist/wishlistpage.dart';  
@@ -31,6 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => CarComparisonPage()),
+      );
+    } else if (index == 4) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => NewsArticleListPage()),
       );
     } else {
       setState(() {

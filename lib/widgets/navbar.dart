@@ -39,6 +39,10 @@ class MyBottomNavBar extends StatelessWidget {
           icon: Icon(Icons.directions_car),
           label: "Compare",
         ),
+        BottomNavigationBarItem(
+          icon : Icon(Icons.newspaper),
+          label: "News"
+        ),
       ],
     );
   }

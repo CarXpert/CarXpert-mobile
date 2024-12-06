@@ -1,27 +1,62 @@
+import 'dart:convert';
+import 'package:car_xpert/screens/news/addnews.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-class NewsArticleListPage extends StatelessWidget {
-  final List<String> authors = ['Author 1', 'Author 2', 'Author 3']; // Replace with dynamic data
-  final List<String> categories = ['All Categories', 'Category 1', 'Category 2']; // Replace with dynamic data
-  final List<Map<String, dynamic>> articles = [
-    {
-      'id': 1,
-      'title': 'Article 1',
-      'author': 'Author 1',
-      'category': 'Category 1',
-      'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-      'image': null, // Replace with image URL if available
-    },
-    {
-      'id': 2,
-      'title': 'Article 2',
-      'author': 'Author 2',
-      'category': 'Category 2',
-      'content': 'Vivamus lacinia odio vitae vestibulum vestibulum.',
-      'image': null,
-    },
-    // Add more articles
-  ];
+class NewsArticleListPage extends StatefulWidget {
+  @override
+  _NewsArticleListPageState createState() => _NewsArticleListPageState();
+}
+
+class _NewsArticleListPageState extends State<NewsArticleListPage> {
+  List<dynamic> articles = [];
+  List<String> authors = [];
+  List<String> categories = ['All Categories'];
+  String? selectedAuthor;
+  String? selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchArticles();
+  }
+
+  Future<void> fetchArticles() async {
+    final response = await http.get(Uri.parse('http://127.0.0.1:8000/news/json/'));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as List<dynamic>;
+      setState(() {
+        articles = data;
+        authors = data.map((article) => article['fields']['author'] as String).toSet().toList();
+        authors.insert(0, 'All Authors');
+        categories = data.map((article) => article['fields']['category'] as String).toSet().toList();
+        categories.insert(0, 'All Categories');
+      });
+    } else {
+      throw Exception('Failed to load articles');
+    }
+  }
+
+  Future<void> deleteArticle(int id) async {
+    final response = await http.delete(
+      Uri.parse('http://127.0.0.1:8000/news/api/$id/delete/'),
+    );
+    if (response.statusCode == 200) {
+      fetchArticles(); // Refresh articles after deletion
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Article deleted successfully')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete article')));
+    }
+  }
+
+  void navigateToAddArticle() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddArticlePage(), // Create this page separately
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +64,19 @@ class NewsArticleListPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Automotive News'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: navigateToAddArticle,
+        backgroundColor: Colors.blue,
+        child: Icon(Icons.add),
+        tooltip: 'Add Article',
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -58,7 +105,7 @@ class NewsArticleListPage extends StatelessWidget {
                           filled: true,
                           fillColor: Colors.grey[800],
                         ),
-                        value: null,
+                        value: selectedAuthor,
                         items: authors.map((author) {
                           return DropdownMenuItem(
                             value: author,
@@ -68,7 +115,11 @@ class NewsArticleListPage extends StatelessWidget {
                             ),
                           );
                         }).toList(),
-                        onChanged: (value) {},
+                        onChanged: (value) {
+                          setState(() {
+                            selectedAuthor = value;
+                          });
+                        },
                       ),
                       SizedBox(height: 10),
                       DropdownButtonFormField<String>(
@@ -77,7 +128,7 @@ class NewsArticleListPage extends StatelessWidget {
                           filled: true,
                           fillColor: Colors.grey[800],
                         ),
-                        value: null,
+                        value: selectedCategory,
                         items: categories.map((category) {
                           return DropdownMenuItem(
                             value: category,
@@ -87,11 +138,15 @@ class NewsArticleListPage extends StatelessWidget {
                             ),
                           );
                         }).toList(),
-                        onChanged: (value) {},
+                        onChanged: (value) {
+                          setState(() {
+                            selectedCategory = value;
+                          });
+                        },
                       ),
                       SizedBox(height: 10),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: fetchArticles,
                         child: Text('Filter'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue[600],
@@ -115,7 +170,8 @@ class NewsArticleListPage extends StatelessWidget {
                       ),
                       itemCount: articles.length,
                       itemBuilder: (context, index) {
-                        final article = articles[index];
+                        final article = articles[index]['fields'];
+                        final articleId = articles[index]['pk'];
                         return Card(
                           color: Colors.grey[800],
                           elevation: 5,
@@ -124,7 +180,7 @@ class NewsArticleListPage extends StatelessWidget {
                             children: [
                               article['image'] != null
                                   ? Image.network(
-                                      article['image'],
+                                      'http://127.0.0.1:8000' + article['image'],
                                       height: 120,
                                       fit: BoxFit.cover,
                                     )
@@ -168,6 +224,23 @@ class NewsArticleListPage extends StatelessWidget {
                                     ),
                                   ],
                                 ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.edit, color: Colors.blue),
+                                    onPressed: () {
+                                      // Navigate to edit page
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () {
+                                      deleteArticle(articleId);
+                                    },
+                                  ),
+                                ],
                               ),
                             ],
                           ),
