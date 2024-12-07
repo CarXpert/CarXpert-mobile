@@ -7,6 +7,11 @@ import 'package:car_xpert/models/carlist.dart'; // Import model CarEntry
 import 'package:car_xpert/widgets/navbar.dart';
 import 'package:car_xpert/screens/wishlist/wishlistpage.dart';  
 import 'package:car_xpert/screens/comparecars/compare.dart'; 
+import 'package:provider/provider.dart'; // Import Provider
+import 'package:pbp_django_auth/pbp_django_auth.dart'; // Import CookieRequest
+import 'package:car_xpert/screens/authentication/login.dart'; // Import LoginPage
+import 'package:car_xpert/screens/detailcar/detailcar.dart'; // Import DetailCarPage
+import 'package:car_xpert/screens/mainpage/addcar.dart'; // Import AddCarPage
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -59,11 +64,85 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Fungsi untuk logout
+  void _logout() async {
+    final request = context.read<CookieRequest>();
+    final response = await request.logout("http://127.0.0.1:8000/auth/logout_django/"); // Pastikan endpoint logout sesuai di Django
+
+    if (response['status'] == 'success') {
+      // Navigasi ke LoginPage dan hapus semua route sebelumnya
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (Route<dynamic> route) => false,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Logout berhasil.")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Logout gagal.")),
+      );
+    }
+  }
+
+  // Fungsi untuk menghapus mobil
+  // Future<void> _deleteCar(String carId) async {
+  //   final request = context.read<CookieRequest>();
+  //   final deleteUrl = 'http://127.0.0.1:8000/main/delete_car/$carId/';
+
+  //   final response = await request.delete(deleteUrl, {});
+    
+  //   if (response['status'] == 'success') {
+  //     // Jika berhasil, refresh daftar mobil
+  //     setState(() {
+  //       _carList = fetchCarList();
+  //     });
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Mobil berhasil dihapus.")),
+  //     );
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text("Gagal menghapus mobil: ${response['message']}")),
+  //     );
+  //   }
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Car Xpert"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              // Tampilkan konfirmasi sebelum logout
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Apakah Anda yakin ingin logout?'),
+                  actions: [
+                    TextButton(
+                      child: const Text('Batal'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('Logout'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _logout();
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<CarEntry>>(
         future: _carList, // Menggunakan data yang sudah di-fetch
@@ -100,6 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Image.network(
                         imageUrl, // Menggunakan URL gambar dari Django static folder
                         height: 150,
+                        width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return const Center(child: Icon(Icons.image_not_supported, size: 50)); // Placeholder jika gambar tidak ditemukan
@@ -110,19 +190,57 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(car.fields.brand, style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text('Model: ${fieldsModelValues.reverse[car.fields.model]}', style: TextStyle(fontSize: 12)),
-                            Text('Color: ${car.fields.color}', style: TextStyle(fontSize: 12)),
-                            Text('Year: ${car.fields.year}', style: TextStyle(fontSize: 12)),
-                            Text('Mileage: ${car.fields.mileage} km', style: TextStyle(fontSize: 12)),
-                            Text('Price: \$${car.fields.priceCash}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            // Tombol detail
-                            ElevatedButton(
-                              onPressed: () {
-                                // Arahkan ke halaman detail, sesuaikan URL
-                                Navigator.pushNamed(context, '/car/${car.pk}');
-                              },
-                              child: const Text('Detail'),
+                            Text(car.fields.brand, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text('Model: ${fieldsModelValues.reverse[car.fields.model]}', style: const TextStyle(fontSize: 12)),
+                            Text('Color: ${car.fields.color}', style: const TextStyle(fontSize: 12)),
+                            Text('Year: ${car.fields.year}', style: const TextStyle(fontSize: 12)),
+                            Text('Mileage: ${car.fields.mileage} km', style: const TextStyle(fontSize: 12)),
+                            Text('Price: \Rp. ${car.fields.priceCash}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8.0),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    // Navigasi ke DetailCarPage dengan mengirimkan car ID
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DetailCarPage(carId: car.pk),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('Detail'),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () {
+                                    // Tampilkan konfirmasi sebelum menghapus
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text('Hapus Mobil'),
+                                        content: const Text('Apakah Anda yakin ingin menghapus mobil ini?'),
+                                        actions: [
+                                          TextButton(
+                                            child: const Text('Batal'),
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                          TextButton(
+                                            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              // _deleteCar(car.pk);
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -134,6 +252,22 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Navigasi ke AddCarPage
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddCarPage()),
+          ).then((value) {
+            // Setelah kembali dari AddCarPage, refresh daftar mobil
+            setState(() {
+              _carList = fetchCarList();
+            });
+          });
+        },
+        child: const Icon(Icons.add),
+        tooltip: 'Add Car',
       ),
       bottomNavigationBar: MyBottomNavBar(
         currentIndex: _currentIndex,
