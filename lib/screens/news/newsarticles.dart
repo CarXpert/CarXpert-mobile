@@ -14,6 +14,7 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
   List<String> categories = ['All Categories'];
   String? selectedAuthor;
   String? selectedCategory;
+  List<dynamic> filteredArticles = []; // Menambahkan variabel untuk menyimpan hasil filter
 
   @override
   void initState() {
@@ -31,6 +32,7 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
         authors.insert(0, 'All Authors');
         categories = data.map((article) => article['fields']['category'] as String).toSet().toList();
         categories.insert(0, 'All Categories');
+        filteredArticles = articles; // Inisialisasi filteredArticles dengan data lengkap
       });
     } else {
       throw Exception('Failed to load articles');
@@ -56,6 +58,18 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
         builder: (context) => AddArticlePage(), // Create this page separately
       ),
     );
+  }
+
+  // Fungsi untuk memfilter artikel berdasarkan pilihan user
+  void filterArticles() {
+    setState(() {
+      filteredArticles = articles.where((article) {
+        final fields = article['fields'];
+        bool authorMatches = selectedAuthor == null || selectedAuthor == 'All Authors' || fields['author'] == selectedAuthor;
+        bool categoryMatches = selectedCategory == null || selectedCategory == 'All Categories' || fields['category'] == selectedCategory;
+        return authorMatches && categoryMatches;
+      }).toList();
+    });
   }
 
   @override
@@ -146,7 +160,7 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                       ),
                       SizedBox(height: 10),
                       ElevatedButton(
-                        onPressed: fetchArticles,
+                        onPressed: filterArticles, // Memanggil fungsi filter saat tombol ditekan
                         child: Text('Filter'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue[600],
@@ -158,7 +172,7 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
               ),
 
               // Articles Grid
-              articles.isNotEmpty
+              filteredArticles.isNotEmpty
                   ? GridView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
@@ -168,10 +182,10 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                         mainAxisSpacing: 10,
                         childAspectRatio: 0.8,
                       ),
-                      itemCount: articles.length,
+                      itemCount: filteredArticles.length,
                       itemBuilder: (context, index) {
-                        final article = articles[index]['fields'];
-                        final articleId = articles[index]['pk'];
+                        final article = filteredArticles[index]['fields'];
+                        final articleId = filteredArticles[index]['pk'];
                         return Card(
                           color: Colors.grey[800],
                           elevation: 5,
@@ -249,7 +263,7 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                     )
                   : Center(
                       child: Text(
-                        "Sorry, we don't have any news yet.",
+                        "No articles match your filters.",
                         style: TextStyle(color: Colors.grey[400]),
                       ),
                     ),
