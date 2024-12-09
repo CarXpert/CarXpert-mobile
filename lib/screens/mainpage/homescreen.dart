@@ -1,12 +1,13 @@
 // car_xpert/screens/mainpage/homescreen.dart
+import 'package:car_xpert/screens/bookshowroom/bookshowroom.dart';
 import 'package:car_xpert/screens/news/newsarticles.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // Untuk JSON parsing
 import 'package:car_xpert/models/carlist.dart'; // Import model CarEntry
 import 'package:car_xpert/widgets/navbar.dart';
-import 'package:car_xpert/screens/wishlist/wishlistpage.dart';  
-import 'package:car_xpert/screens/comparecars/compare.dart'; 
+import 'package:car_xpert/screens/wishlist/wishlistpage.dart';
+import 'package:car_xpert/screens/comparecars/compare.dart';
 import 'package:provider/provider.dart'; // Import Provider
 import 'package:pbp_django_auth/pbp_django_auth.dart'; // Import CookieRequest
 import 'package:car_xpert/screens/authentication/login.dart'; // Import LoginPage
@@ -26,7 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Fungsi untuk mengambil data dari API Django
   Future<List<CarEntry>> fetchCarList() async {
-    final response = await http.get(Uri.parse('http://127.0.0.1:8000/main/json/'));
+    final response =
+        await http.get(Uri.parse('http://127.0.0.1:8000/main/json/'));
 
     if (response.statusCode == 200) {
       return carEntryFromJson(response.body); // Parse JSON ke List<CarEntry>
@@ -42,7 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onItemTapped(int index) {
-    if (index == 2) {
+    if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => BookShowroomScreen()),
+      );
+    } else if (index == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const WishlistPage()),
@@ -67,7 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // Fungsi untuk logout
   void _logout() async {
     final request = context.read<CookieRequest>();
-    final response = await request.logout("http://127.0.0.1:8000/auth/logout_django/"); // Pastikan endpoint logout sesuai di Django
+    final response = await request.logout(
+        "http://127.0.0.1:8000/auth/logout_django/"); // Pastikan endpoint logout sesuai di Django
 
     if (response['status'] == 'success') {
       // Navigasi ke LoginPage dan hapus semua route sebelumnya
@@ -92,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
   //   final deleteUrl = 'http://127.0.0.1:8000/main/delete_car/$carId/';
 
   //   final response = await request.delete(deleteUrl, {});
-    
+
   //   if (response['status'] == 'success') {
   //     // Jika berhasil, refresh daftar mobil
   //     setState(() {
@@ -148,7 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
         future: _carList, // Menggunakan data yang sudah di-fetch
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator()); // Menunggu data
+            return const Center(
+                child: CircularProgressIndicator()); // Menunggu data
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -168,8 +177,9 @@ class _HomeScreenState extends State<HomeScreen> {
               itemBuilder: (context, index) {
                 final car = cars[index];
                 // URL gambar berdasarkan brand mobil
-                final imageUrl = 'http://127.0.0.1:8000/static/images/${car.fields.brand.replaceAll(' ', '_')}.png';
-                
+                final imageUrl =
+                    'http://127.0.0.1:8000/static/images/${car.fields.brand.replaceAll(' ', '_')}.png';
+
                 return Card(
                   elevation: 5,
                   child: Column(
@@ -182,7 +192,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          return const Center(child: Icon(Icons.image_not_supported, size: 50)); // Placeholder jika gambar tidak ditemukan
+                          return const Center(
+                              child: Icon(Icons.image_not_supported,
+                                  size:
+                                      50)); // Placeholder jika gambar tidak ditemukan
                         },
                       ),
                       Padding(
@@ -190,12 +203,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(car.fields.brand, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            Text('Model: ${fieldsModelValues.reverse[car.fields.model]}', style: const TextStyle(fontSize: 12)),
-                            Text('Color: ${car.fields.color}', style: const TextStyle(fontSize: 12)),
-                            Text('Year: ${car.fields.year}', style: const TextStyle(fontSize: 12)),
-                            Text('Mileage: ${car.fields.mileage} km', style: const TextStyle(fontSize: 12)),
-                            Text('Price: \Rp. ${car.fields.priceCash}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text(car.fields.brand,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                            Text(
+                                'Model: ${fieldsModelValues.reverse[car.fields.model]}',
+                                style: const TextStyle(fontSize: 12)),
+                            Text('Color: ${car.fields.color}',
+                                style: const TextStyle(fontSize: 12)),
+                            Text('Year: ${car.fields.year}',
+                                style: const TextStyle(fontSize: 12)),
+                            Text('Mileage: ${car.fields.mileage} km',
+                                style: const TextStyle(fontSize: 12)),
+                            Text('Price: \Rp. ${car.fields.priceCash}',
+                                style: const TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8.0),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -206,21 +228,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => DetailCarPage(carId: car.pk),
+                                        builder: (context) =>
+                                            DetailCarPage(carId: car.pk),
                                       ),
                                     );
                                   },
                                   child: const Text('Detail'),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
                                   onPressed: () {
                                     // Tampilkan konfirmasi sebelum menghapus
                                     showDialog(
                                       context: context,
                                       builder: (context) => AlertDialog(
                                         title: const Text('Hapus Mobil'),
-                                        content: const Text('Apakah Anda yakin ingin menghapus mobil ini?'),
+                                        content: const Text(
+                                            'Apakah Anda yakin ingin menghapus mobil ini?'),
                                         actions: [
                                           TextButton(
                                             child: const Text('Batal'),
@@ -229,7 +254,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                             },
                                           ),
                                           TextButton(
-                                            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+                                            child: const Text('Hapus',
+                                                style: TextStyle(
+                                                    color: Colors.red)),
                                             onPressed: () {
                                               Navigator.pop(context);
                                               // _deleteCar(car.pk);
