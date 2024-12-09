@@ -14,7 +14,7 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
   List<String> categories = ['All Categories'];
   String? selectedAuthor;
   String? selectedCategory;
-  List<dynamic> filteredArticles = []; // Menambahkan variabel untuk menyimpan hasil filter
+  List<dynamic> filteredArticles = [];
 
   @override
   void initState() {
@@ -32,35 +32,13 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
         authors.insert(0, 'All Authors');
         categories = data.map((article) => article['fields']['category'] as String).toSet().toList();
         categories.insert(0, 'All Categories');
-        filteredArticles = articles; // Inisialisasi filteredArticles dengan data lengkap
+        filteredArticles = articles;
       });
     } else {
       throw Exception('Failed to load articles');
     }
   }
 
-  Future<void> deleteArticle(int id) async {
-    final response = await http.delete(
-      Uri.parse('http://127.0.0.1:8000/news/api/$id/delete/'),
-    );
-    if (response.statusCode == 200) {
-      fetchArticles(); // Refresh articles after deletion
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Article deleted successfully')));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete article')));
-    }
-  }
-
-  void navigateToAddArticle() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddArticlePage(), // Create this page separately
-      ),
-    );
-  }
-
-  // Fungsi untuk memfilter artikel berdasarkan pilihan user
   void filterArticles() {
     setState(() {
       filteredArticles = articles.where((article) {
@@ -76,18 +54,26 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Automotive News'),
+        title: Text('Automotive News', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         backgroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: navigateToAddArticle,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddArticlePage(),
+            ),
+          );
+        },
         backgroundColor: Colors.blue,
         child: Icon(Icons.add),
         tooltip: 'Add Article',
@@ -100,82 +86,69 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            children: [
-              // Filter Section
-              Card(
-                color: Colors.white.withOpacity(0.1),
-                elevation: 5,
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: 'Filter by Author',
-                          filled: true,
-                          fillColor: Colors.grey[800],
-                        ),
-                        value: selectedAuthor,
-                        items: authors.map((author) {
-                          return DropdownMenuItem(
-                            value: author,
-                            child: Text(
-                              author,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedAuthor = value;
-                          });
-                        },
+        child: Column(
+          children: [
+            // Filter Row
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Author',
+                        labelStyle: TextStyle(color: Colors.white),
+                        filled: true,
+                        fillColor: Colors.grey[800],
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),
-                      SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: 'Filter by Category',
-                          filled: true,
-                          fillColor: Colors.grey[800],
-                        ),
-                        value: selectedCategory,
-                        items: categories.map((category) {
-                          return DropdownMenuItem(
-                            value: category,
-                            child: Text(
-                              category,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedCategory = value;
-                          });
-                        },
-                      ),
-                      SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: filterArticles, // Memanggil fungsi filter saat tombol ditekan
-                        child: Text('Filter'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[600],
-                        ),
-                      ),
-                    ],
+                      value: selectedAuthor,
+                      items: authors.map((author) {
+                        return DropdownMenuItem(
+                          value: author,
+                          child: Text(author, style: TextStyle(color: Colors.white)),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedAuthor = value;
+                          filterArticles();
+                        });
+                      },
+                    ),
                   ),
-                ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Category',
+                        labelStyle: TextStyle(color: Colors.white),
+                        filled: true,
+                        fillColor: Colors.grey[800],
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      value: selectedCategory,
+                      items: categories.map((category) {
+                        return DropdownMenuItem(
+                          value: category,
+                          child: Text(category, style: TextStyle(color: Colors.white)),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCategory = value;
+                          filterArticles();
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ),
-
-              // Articles Grid
-              filteredArticles.isNotEmpty
+            ),
+            Expanded(
+              child: filteredArticles.isNotEmpty
                   ? GridView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 10,
@@ -185,78 +158,61 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                       itemCount: filteredArticles.length,
                       itemBuilder: (context, index) {
                         final article = filteredArticles[index]['fields'];
-                        final articleId = filteredArticles[index]['pk'];
-                        return Card(
-                          color: Colors.grey[800],
-                          elevation: 5,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              article['image'] != null
-                                  ? Image.network(
-                                      'http://127.0.0.1:8000' + article['image'],
-                                      height: 120,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Container(
-                                      height: 120,
-                                      color: Colors.grey[700],
-                                      child: Icon(
-                                        Icons.image,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      article['title'],
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(height: 5),
-                                    Text(
-                                      'Published by ${article['author']} | ${article['category']}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[400],
-                                      ),
-                                    ),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      article['content'],
-                                      style: TextStyle(
-                                        color: Colors.grey[300],
-                                      ),
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
+                        return InkWell(
+                          onTap: () {
+                            // Navigate to details
+                          },
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            color: Colors.grey[850],
+                            elevation: 6,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                                  child: article['image'] != null
+                                      ? Image.network(
+                                          'http://127.0.0.1:8000' + article['image'],
+                                          height: 120,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Container(
+                                          height: 120,
+                                          color: Colors.grey[700],
+                                          child: Icon(Icons.image, color: Colors.white),
+                                        ),
                                 ),
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.edit, color: Colors.blue),
-                                    onPressed: () {
-                                      // Navigate to edit page
-                                    },
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        article['title'],
+                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      SizedBox(height: 5),
+                                      Text(
+                                        '${article['author']} | ${article['category']}',
+                                        style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(
+                                        article['content'],
+                                        style: TextStyle(fontSize: 12, color: Colors.grey[300]),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
                                   ),
-                                  IconButton(
-                                    icon: Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () {
-                                      deleteArticle(articleId);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -267,8 +223,8 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                         style: TextStyle(color: Colors.grey[400]),
                       ),
                     ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

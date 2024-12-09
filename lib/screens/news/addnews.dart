@@ -13,6 +13,7 @@ class _AddArticlePageState extends State<AddArticlePage> {
   final TextEditingController _authorController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
   String? _selectedCategory;
+  String? _selectedImage;
 
   // Daftar kategori
   final List<String> _categories = [
@@ -21,6 +22,53 @@ class _AddArticlePageState extends State<AddArticlePage> {
     'Tips and Trick Otomotif',
     'Others',
   ];
+
+  // Fungsi untuk memilih gambar dari assets
+  Future<void> _selectImage() async {
+    final imageFile = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Select Image'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Daftar gambar di assets/images
+              Image.asset('assets/images/car_news.jpg'),
+              Image.asset('assets/images/another_car_news.jpg'),
+              Image.asset('assets/images/car3.jpg'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop('car_news.jpg');
+              },
+              child: Text('car_news.jpg'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop('another_car_news.jpg');
+              },
+              child: Text('another_car_news.jpg'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop('car3.jpg');
+              },
+              child: Text('car3.jpg'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (imageFile != null) {
+      setState(() {
+        _selectedImage = imageFile;
+      });
+    }
+  }
 
   Future<void> _submitArticle() async {
     if (_formKey.currentState!.validate()) {
@@ -32,6 +80,7 @@ class _AddArticlePageState extends State<AddArticlePage> {
           'author': _authorController.text,
           'category': _selectedCategory,
           'content': _contentController.text,
+          'image': _selectedImage, // Tambahkan nama gambar untuk upload
         }),
       );
 
@@ -113,6 +162,23 @@ class _AddArticlePageState extends State<AddArticlePage> {
                   maxLines: 5,
                   validator: (value) => value!.isEmpty ? 'Content is required' : null,
                 ),
+                SizedBox(height: 20),
+
+                // Image Selector
+                ElevatedButton(
+                  onPressed: _selectImage,
+                  child: Text('Select Image'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 40),
+                  ),
+                ),
+                SizedBox(height: 10),
+
+                // Display Selected Image
+                _selectedImage != null
+                    ? Image.asset('assets/images/$_selectedImage')
+                    : Text('No image selected'),
+
                 SizedBox(height: 20),
 
                 // Submit Button
