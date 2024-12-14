@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:car_xpert/screens/news/addnews.dart';
+import 'package:car_xpert/screens/news/newsdetail.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -158,9 +159,15 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                       itemCount: filteredArticles.length,
                       itemBuilder: (context, index) {
                         final article = filteredArticles[index]['fields'];
-                        return InkWell(
+                        return 
+                        InkWell(
                           onTap: () {
-                            // Navigate to details
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => NewsDetailPage(article: filteredArticles[index]),
+                              ),
+                            );
                           },
                           child: Card(
                             shape: RoundedRectangleBorder(
