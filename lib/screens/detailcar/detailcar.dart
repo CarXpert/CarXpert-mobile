@@ -15,15 +15,36 @@ class DetailCarPage extends StatefulWidget {
 }
 
 class _DetailCarPageState extends State<DetailCarPage> {
-  late Future<CarEntry> _carDetail;
+  late Future<Map<String, dynamic>> _carDetailWithShowroom;
 
-  // Fungsi untuk mengambil detail mobil berdasarkan carId
-  Future<CarEntry> fetchCarDetail() async {
-    final response = await http.get(Uri.parse('http://127.0.0.1:8000/main/json/'));
+  Future<Map<String, dynamic>> fetchCarDetailWithShowroom() async {
+    // Fetch car detail
+    final carDetailResponse = await http.get(Uri.parse('http://127.0.0.1:8000/main/json/'));
 
-    if (response.statusCode == 200) {
-      List<CarEntry> cars = carEntryFromJson(response.body);
-      return cars.firstWhere((car) => car.pk == widget.carId);
+    if (carDetailResponse.statusCode == 200) {
+      List<CarEntry> cars = carEntryFromJson(carDetailResponse.body);
+      CarEntry car = cars.firstWhere((car) => car.pk == widget.carId);
+
+      // Setelah mendapatkan data mobil, fetch showroom data
+      final showroomResponse = await http.get(Uri.parse('http://127.0.0.1:8000/showrooms_data/'));
+      if (showroomResponse.statusCode == 200) {
+        final showroomData = jsonDecode(showroomResponse.body);
+        List showrooms = showroomData['showrooms'];
+
+        // Mencari showroom yang ID-nya sama dengan showroom pada mobil
+        final matchingShowroom = showrooms.firstWhere(
+          (s) => s['id'] == car.fields.showroom,
+          orElse: () => null
+        );
+
+        // Kembalikan data mobil dan showroom dalam bentuk map
+        return {
+          'car': car,
+          'showroom': matchingShowroom
+        };
+      } else {
+        throw Exception('Failed to load showroom data');
+      }
     } else {
       throw Exception('Failed to load car detail');
     }
@@ -32,7 +53,7 @@ class _DetailCarPageState extends State<DetailCarPage> {
   @override
   void initState() {
     super.initState();
-    _carDetail = fetchCarDetail();
+    _carDetailWithShowroom = fetchCarDetailWithShowroom();
   }
 
   @override
@@ -41,8 +62,8 @@ class _DetailCarPageState extends State<DetailCarPage> {
       appBar: AppBar(
         title: const Text('Detail Car'),
       ),
-      body: FutureBuilder<CarEntry>(
-        future: _carDetail,
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _carDetailWithShowroom,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -51,7 +72,10 @@ class _DetailCarPageState extends State<DetailCarPage> {
           } else if (!snapshot.hasData) {
             return const Center(child: Text('No data available.'));
           } else {
-            final car = snapshot.data!;
+            final data = snapshot.data!;
+            final CarEntry car = data['car'];
+            final showroom = data['showroom'];
+
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -68,6 +92,7 @@ class _DetailCarPageState extends State<DetailCarPage> {
                     },
                   ),
                   const SizedBox(height: 16.0),
+
                   // Informasi Mobil
                   _buildDetailRow('Brand', car.fields.brand),
                   _buildDetailRow('Car Type', car.fields.carType),
@@ -84,24 +109,32 @@ class _DetailCarPageState extends State<DetailCarPage> {
                   _buildDetailRow('License Plate', car.fields.licensePlate),
                   _buildDetailRow('Price Cash', '\Rp. ${car.fields.priceCash}'),
                   _buildDetailRow('Price Credit', '\Rp. ${car.fields.priceCredit}'),
-                  _buildDetailRow('Cerated at', _formatDate(car.fields.createdAt)),
+                  _buildDetailRow('Created at', _formatDate(car.fields.createdAt)),
                   _buildDetailRow('Last Update', _formatDate(car.fields.updatedAt)),
-                  _buildDetailRow('Showroom', car.fields.showroom),
+
+                  // Jika showroom ditemukan, tampilkan detailnya
+                  if (showroom != null) ...[
+                    _buildDetailRow('Showroom Name', showroom['showroom_name']),
+                    _buildDetailRow('Showroom Location', showroom['showroom_location']),
+                    _buildDetailRow('Showroom Regency', showroom['showroom_regency']),
+                  ] else
+                    const Text('Showroom not found'),
+
                   const SizedBox(height: 24.0),
-                  // Tombol Edit (Opsional)
+
+                  // Tombol Edit
                   ElevatedButton(
                     onPressed: () {
-                      // Navigasi ke halaman edit
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => EditCarPage(carId: car.pk),
                         ),
                       ).then((value) {
-                        // Jika setelah edit kita ingin memuat ulang detail
+                        // Reload data setelah edit jika diperlukan
                         if (value == true) {
                           setState(() {
-                            _carDetail = fetchCarDetail();
+                            _carDetailWithShowroom = fetchCarDetailWithShowroom();
                           });
                         }
                       });
@@ -117,7 +150,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
     );
   }
 
-  // Widget untuk menampilkan baris detail
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -135,7 +167,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
     );
   }
 
-  // Fungsi untuk memformat tanggal
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
   }

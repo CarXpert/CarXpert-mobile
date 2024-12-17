@@ -1,4 +1,4 @@
-// car_xpert/screens/mainpage/addcar.dart
+// lib/screens/mainpage/addcar.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -14,7 +14,10 @@ class _AddCarPageState extends State<AddCarPage> {
   final _formKey = GlobalKey<FormState>();
 
   // Kontroler untuk setiap field
-  final TextEditingController _showroomController = TextEditingController();
+  final TextEditingController _showroomNameController = TextEditingController();
+  final TextEditingController _showroomLocationController = TextEditingController();
+  final TextEditingController _showroomRegencyController = TextEditingController();
+
   final TextEditingController _brandController = TextEditingController();
   final TextEditingController _carTypeController = TextEditingController(); // Ubah jadi text field
   String? _model; // Dropdown
@@ -38,7 +41,6 @@ class _AddCarPageState extends State<AddCarPage> {
   final TextEditingController _totalLevyController = TextEditingController();
 
   // Data untuk dropdown
-  // Karena car_type sudah menjadi input bebas, kita tidak perlu _carTypes lagi.
   final List<String> _models = [
     'SEDAN',
     'SUV',
@@ -80,6 +82,13 @@ class _AddCarPageState extends State<AddCarPage> {
     }
   }
 
+  // Fungsi untuk memformat tanggal ke 'YYYY-MM-DD'
+  String _formatDateForDjango(DateTime date) {
+    return '${date.year.toString().padLeft(4, '0')}-'
+           '${date.month.toString().padLeft(2, '0')}-'
+           '${date.day.toString().padLeft(2, '0')}';
+  }
+
   // Fungsi untuk menambahkan mobil
   void _addCar() async {
     if (_formKey.currentState!.validate()) {
@@ -91,8 +100,11 @@ class _AddCarPageState extends State<AddCarPage> {
       }
 
       final request = context.read<CookieRequest>();
+      // Pastikan kita mengirim showroom_name, showroom_location, showroom_regency
       final response = await request.post("http://127.0.0.1:8000/add_car/", {
-        'showroom': _showroomController.text,
+        'showroom_name': _showroomNameController.text,
+        'showroom_location': _showroomLocationController.text,
+        'showroom_regency': _showroomRegencyController.text,
         'brand': _brandController.text,
         'car_type': _carTypeController.text, // Ambil dari text field
         'model': _model!,
@@ -110,22 +122,33 @@ class _AddCarPageState extends State<AddCarPage> {
         'price_credit': _priceCreditController.text,
         'pkb_value': _pkbValueController.text,
         'pkb_base': _pkbBaseController.text,
-        'stnk_date': _stnkDate!.toIso8601String(),
-        'levy_date': _levyDate!.toIso8601String(),
+        'stnk_date': _formatDateForDjango(_stnkDate!),
+        'levy_date': _formatDateForDjango(_levyDate!),
         'swdkllj': _swdklljController.text,
         'total_levy': _totalLevyController.text,
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
       });
 
-      if (response['status'] == 'success') {
+      if (response['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Mobil berhasil ditambahkan.")),
         );
         Navigator.pop(context);
       } else {
+        // Tampilkan pesan error yang lebih spesifik jika tersedia
+        String errorMessage = "Terjadi kesalahan";
+        if (response['error'] != null) {
+          errorMessage = response['error'];
+        } else if (response['errors'] != null) {
+          // Jika ada error dari form Django, tampilkan semua error
+          Map<String, dynamic> errors = response['errors'];
+          List<String> errorList = [];
+          errors.forEach((key, value) {
+            errorList.add("$key: ${value.join(', ')}");
+          });
+          errorMessage = errorList.join('\n');
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Gagal menambahkan mobil: ${response['message']}")),
+          SnackBar(content: Text("Gagal menambahkan mobil: $errorMessage")),
         );
       }
     }
@@ -143,16 +166,48 @@ class _AddCarPageState extends State<AddCarPage> {
           key: _formKey,
           child: Column(
             children: [
-              // Showroom
+              // Showroom Name
               TextFormField(
-                controller: _showroomController,
+                controller: _showroomNameController,
                 decoration: const InputDecoration(
-                  labelText: 'Showroom',
+                  labelText: 'Showroom Name',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Showroom tidak boleh kosong';
+                    return 'Showroom Name tidak boleh kosong';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+
+              // Showroom Location
+              TextFormField(
+                controller: _showroomLocationController,
+                decoration: const InputDecoration(
+                  labelText: 'Showroom Location',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Showroom Location tidak boleh kosong';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+
+              // Showroom Regency
+              TextFormField(
+                controller: _showroomRegencyController,
+                decoration: const InputDecoration(
+                  labelText: 'Showroom Regency',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Showroom Regency tidak boleh kosong';
                   }
                   return null;
                 },
@@ -175,7 +230,7 @@ class _AddCarPageState extends State<AddCarPage> {
               ),
               const SizedBox(height: 16.0),
 
-              // Car Type -> Sekarang TextField bebas
+              // Car Type -> Jadi input bebas
               TextFormField(
                 controller: _carTypeController,
                 decoration: const InputDecoration(
@@ -405,7 +460,7 @@ class _AddCarPageState extends State<AddCarPage> {
               TextFormField(
                 controller: _priceCashController,
                 decoration: const InputDecoration(
-                  labelText: 'Price Cash (\$)',
+                  labelText: 'Price Cash',
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
@@ -425,7 +480,7 @@ class _AddCarPageState extends State<AddCarPage> {
               TextFormField(
                 controller: _priceCreditController,
                 decoration: const InputDecoration(
-                  labelText: 'Price Credit (\$)',
+                  labelText: 'Price Credit',
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
@@ -488,7 +543,7 @@ class _AddCarPageState extends State<AddCarPage> {
                     child: Text(
                       _stnkDate == null
                           ? 'STNK Expiry Date: Not selected'
-                          : 'STNK Expiry Date: ${_formatDate(_stnkDate!)}',
+                          : 'STNK Expiry Date: ${_formatDateForDjango(_stnkDate!)}',
                     ),
                   ),
                   ElevatedButton(
@@ -506,7 +561,7 @@ class _AddCarPageState extends State<AddCarPage> {
                     child: Text(
                       _levyDate == null
                           ? 'Levy Expiry Date: Not selected'
-                          : 'Levy Expiry Date: ${_formatDate(_levyDate!)}',
+                          : 'Levy Expiry Date: ${_formatDateForDjango(_levyDate!)}',
                     ),
                   ),
                   ElevatedButton(
@@ -569,15 +624,12 @@ class _AddCarPageState extends State<AddCarPage> {
     );
   }
 
-  // Fungsi untuk memformat tanggal
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
-  }
-
   @override
   void dispose() {
     // Dispose semua controller
-    _showroomController.dispose();
+    _showroomNameController.dispose();
+    _showroomLocationController.dispose();
+    _showroomRegencyController.dispose();
     _brandController.dispose();
     _carTypeController.dispose();
     _colorController.dispose();

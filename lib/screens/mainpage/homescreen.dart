@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Fungsi untuk menghapus mobil
   // Future<void> _deleteCar(String carId) async {
   //   final request = context.read<CookieRequest>();
-  //   final deleteUrl = 'http://127.0.0.1:8000/main/delete_car/$carId/';
+  //   final deleteUrl = 'http:main/delete_car/$carId/';
 
   //   final response = await request.delete(deleteUrl, {});
 
