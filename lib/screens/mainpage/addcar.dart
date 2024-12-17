@@ -16,7 +16,7 @@ class _AddCarPageState extends State<AddCarPage> {
   // Kontroler untuk setiap field
   final TextEditingController _showroomController = TextEditingController();
   final TextEditingController _brandController = TextEditingController();
-  String? _carType; // Dropdown
+  final TextEditingController _carTypeController = TextEditingController(); // Ubah jadi text field
   String? _model; // Dropdown
   final TextEditingController _colorController = TextEditingController();
   final TextEditingController _yearController = TextEditingController();
@@ -38,19 +38,7 @@ class _AddCarPageState extends State<AddCarPage> {
   final TextEditingController _totalLevyController = TextEditingController();
 
   // Data untuk dropdown
-  final List<String> _carTypes = [
-    'Sedan',
-    'SUV',
-    'MPV',
-    'Minivan',
-    'Minibus',
-    'Micro/Minibus',
-    'JEEP',
-    'JEEP L.C.HDTP',
-    'JEEP S.C.HDTP',
-    // Tambahkan tipe lainnya sesuai kebutuhan
-  ];
-
+  // Karena car_type sudah menjadi input bebas, kita tidak perlu _carTypes lagi.
   final List<String> _models = [
     'SEDAN',
     'SUV',
@@ -61,7 +49,6 @@ class _AddCarPageState extends State<AddCarPage> {
     'JEEP',
     'JEEP L.C.HDTP',
     'JEEP S.C.HDTP',
-    // Tambahkan model lainnya sesuai kebutuhan
   ];
 
   final List<String> _transmissions = [
@@ -96,7 +83,7 @@ class _AddCarPageState extends State<AddCarPage> {
   // Fungsi untuk menambahkan mobil
   void _addCar() async {
     if (_formKey.currentState!.validate()) {
-      if (_carType == null || _model == null || _transmission == null || _fuelType == null || _stnkDate == null || _levyDate == null) {
+      if (_model == null || _transmission == null || _fuelType == null || _stnkDate == null || _levyDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Silakan lengkapi semua field yang diperlukan.")),
         );
@@ -107,7 +94,7 @@ class _AddCarPageState extends State<AddCarPage> {
       final response = await request.post("http://127.0.0.1:8000/add_car/", {
         'showroom': _showroomController.text,
         'brand': _brandController.text,
-        'car_type': _carType!,
+        'car_type': _carTypeController.text, // Ambil dari text field
         'model': _model!,
         'color': _colorController.text,
         'year': _yearController.text,
@@ -188,25 +175,19 @@ class _AddCarPageState extends State<AddCarPage> {
               ),
               const SizedBox(height: 16.0),
 
-              // Car Type
-              DropdownButtonFormField<String>(
+              // Car Type -> Sekarang TextField bebas
+              TextFormField(
+                controller: _carTypeController,
                 decoration: const InputDecoration(
                   labelText: 'Car Type',
                   border: OutlineInputBorder(),
                 ),
-                value: _carType,
-                items: _carTypes
-                    .map((type) => DropdownMenuItem(
-                          value: type,
-                          child: Text(type),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _carType = value;
-                  });
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Car Type tidak boleh kosong';
+                  }
+                  return null;
                 },
-                validator: (value) => value == null ? 'Silakan pilih car type' : null,
               ),
               const SizedBox(height: 16.0),
 
@@ -598,6 +579,7 @@ class _AddCarPageState extends State<AddCarPage> {
     // Dispose semua controller
     _showroomController.dispose();
     _brandController.dispose();
+    _carTypeController.dispose();
     _colorController.dispose();
     _yearController.dispose();
     _doorsController.dispose();
@@ -618,7 +600,7 @@ class _AddCarPageState extends State<AddCarPage> {
 // Extension untuk capitalize string
 extension StringCasingExtension on String {
   String capitalize() {
-    if (this.isEmpty) return this;
+    if (isEmpty) return this;
     return this[0].toUpperCase() + substring(1);
   }
 }

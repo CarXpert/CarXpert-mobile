@@ -1,4 +1,5 @@
 // car_xpert/screens/detailcar/detailcar.dart
+import 'package:car_xpert/screens/detailcar/editcar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -83,13 +84,27 @@ class _DetailCarPageState extends State<DetailCarPage> {
                   _buildDetailRow('License Plate', car.fields.licensePlate),
                   _buildDetailRow('Price Cash', '\Rp. ${car.fields.priceCash}'),
                   _buildDetailRow('Price Credit', '\Rp. ${car.fields.priceCredit}'),
+                  _buildDetailRow('Cerated at', _formatDate(car.fields.createdAt)),
+                  _buildDetailRow('Last Update', _formatDate(car.fields.updatedAt)),
                   _buildDetailRow('Showroom', car.fields.showroom),
                   const SizedBox(height: 24.0),
                   // Tombol Edit (Opsional)
                   ElevatedButton(
                     onPressed: () {
-                      // Navigasi ke halaman edit jika diperlukan
-                      // Navigator.push(context, MaterialPageRoute(builder: (context) => EditCarPage(carId: car.pk)));
+                      // Navigasi ke halaman edit
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditCarPage(carId: car.pk),
+                        ),
+                      ).then((value) {
+                        // Jika setelah edit kita ingin memuat ulang detail
+                        if (value == true) {
+                          setState(() {
+                            _carDetail = fetchCarDetail();
+                          });
+                        }
+                      });
                     },
                     child: const Text('Edit Car'),
                   ),
