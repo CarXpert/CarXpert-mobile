@@ -3,6 +3,9 @@ import 'package:car_xpert/models/comparecars.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:car_xpert/screens/comparecars/list_compare.dart'; // Import list_compare.dart
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+
 
 class CarComparisonPage extends StatefulWidget {
   @override
@@ -51,30 +54,47 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
   void saveComparison() async {
     if (selectedCar1 == null || selectedCar2 == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select two cars to save comparison')),
+        const SnackBar(content: Text('Please select two cars to save comparison')),
       );
       return;
     }
 
-    final response = await http.post(
-      Uri.parse('http://localhost:8000/comparecars/compare/'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'car_one_id': selectedCar1!.id,
-        'car_two_id': selectedCar2!.id,
-      }),
-    );
+    final bodyData = {
+      'car_one_id': selectedCar1!.id,
+      'car_two_id': selectedCar2!.id,
+    };
 
-    if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Comparison saved successfully')),
+    print("Request Body: $bodyData");
+
+    try {
+      // Pastikan `request` berasal dari `context.watch<CookieRequest>()`
+      final request = context.read<CookieRequest>();
+
+      // Perbaiki pemanggilan `post` dengan dua argumen
+      final response = await request.post(
+        "http://127.0.0.1:8000/comparecars/compare/", // URL tujuan
+        bodyData, // Data dalam bentuk Map<String, dynamic>
       );
-    } else {
+
+      // Tangani respons
+      if (response['message'] != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Comparison saved successfully')),
+        );
+      } else {
+        final error = response['error'] ?? 'Failed to save comparison';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save comparison: $error')),
+        );
+      }
+    } catch (e) {
+      print("Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save comparison')),
+        SnackBar(content: Text('Failed to save comparison: $e')),
       );
     }
   }
+
 
   void viewAllComparisons() {
     Navigator.push(
