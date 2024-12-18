@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:car_xpert/screens/news/addnews.dart';
+import 'package:car_xpert/screens/news/editnews.dart';
 import 'package:car_xpert/screens/news/newsdetail.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NewsArticleListPage extends StatefulWidget {
   @override
@@ -16,11 +18,20 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
   String? selectedAuthor;
   String? selectedCategory;
   List<dynamic> filteredArticles = [];
+  bool isAdmin = false;
 
   @override
   void initState() {
     super.initState();
+    checkAdminStatus();
     fetchArticles();
+  }
+
+  Future<void> checkAdminStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isAdmin = prefs.getBool('is_admin') ?? false;
+    });
   }
 
   Future<void> fetchArticles() async {
@@ -37,6 +48,23 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
       });
     } else {
       throw Exception('Failed to load articles');
+    }
+  }
+
+  Future<void> deleteArticle(int articleId) async {
+    final response = await http.delete(
+      Uri.parse('http://127.0.0.1:8000/news/api/$articleId/delete/'),
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Article deleted successfully!')),
+      );
+      fetchArticles(); // Refresh the list
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete article')),
+      );
     }
   }
 
@@ -66,19 +94,23 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddArticlePage(),
-            ),
-          );
-        },
-        backgroundColor: Colors.blue,
-        child: Icon(Icons.add),
-        tooltip: 'Add Article',
-      ),
+      floatingActionButton: 
+      isAdmin 
+        ? FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddArticlePage(),
+                ),
+              ).then((_) => fetchArticles());
+            },
+            backgroundColor: Colors.blue,
+            child: Icon(Icons.add),
+            tooltip: 'Add Article',
+          )
+        : null,
+      
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -89,7 +121,6 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
         ),
         child: Column(
           children: [
-            // Filter Row
             Padding(
               padding: const EdgeInsets.all(10),
               child: Row(
@@ -154,11 +185,12 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                         crossAxisCount: 2,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
-                        childAspectRatio: 0.8,
+                        childAspectRatio: isAdmin ? 0.9 : 0.8,
                       ),
                       itemCount: filteredArticles.length,
                       itemBuilder: (context, index) {
                         final article = filteredArticles[index]['fields'];
+                        final articleId = filteredArticles[index]['pk'];
                         return 
                         InkWell(
                           onTap: () {
@@ -218,6 +250,53 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                                     ],
                                   ),
                                 ),
+                                if (isAdmin)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.edit, color: Colors.blue),
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => EditArticlePage(
+                                                  article: filteredArticles[index]
+                                                ),
+                                              ),
+                                            ).then((_) => fetchArticles());
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.delete, color: Colors.red),
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: Text('Confirm Delete'),
+                                                content: Text('Are you sure you want to delete this article?'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.pop(context),
+                                                    child: Text('Cancel'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                      deleteArticle(articleId);
+                                                    },
+                                                    child: Text('Delete'),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                               ],
                             ),
                           ),

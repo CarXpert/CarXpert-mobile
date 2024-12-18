@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:car_xpert/screens/mainpage/homescreen.dart'; // Perbarui impor
 import 'package:car_xpert/screens/wishlist/wishlistpage.dart';
 import 'package:car_xpert/screens/comparecars/compare.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const LoginApp());
@@ -112,6 +113,15 @@ class _LoginPageState extends State<LoginPage> {
                       if (request.loggedIn) {
                         String message = response['message'];
                         String uname = response['username'];
+                        
+                        // Simpan status admin menggunakan SharedPreferences
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('is_admin', response['is_admin'] ?? false);
+                        
+                        // Cek apakah pengguna adalah admin
+                        // Misalnya, jika username adalah 'admin'
+                        await prefs.setBool('is_admin', username == 'admin');
+
                         if (context.mounted) {
                           Navigator.pushReplacement(
                             context,
