@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:car_xpert/models/carlist.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DetailCarPage extends StatefulWidget {
@@ -17,12 +19,14 @@ class DetailCarPage extends StatefulWidget {
 class _DetailCarPageState extends State<DetailCarPage> {
   late Future<Map<String, dynamic>> _carDetailWithShowroom;
   bool isAdmin = false; // Status peran admin
+  bool isInWishlist = false;
 
   @override
   void initState() {
     super.initState();
     _carDetailWithShowroom = fetchCarDetailWithShowroom();
     _loadUserRole();
+    _checkIfInWishlist();
   }
 
   Future<void> _loadUserRole() async {
@@ -67,6 +71,47 @@ class _DetailCarPageState extends State<DetailCarPage> {
     }
   }
 
+  // Cek apakah mobil sudah ada di wishlist
+  Future<void> _checkIfInWishlist() async {
+    try {
+        final request = context.read<CookieRequest>();
+        final response = await request.post('http://127.0.0.1:8000/wishlist/check/', {'car_id': widget.carId},);
+
+      if (response['status'] == 'success') {
+        setState(() {
+          isInWishlist = response['in_wishlist'];
+        });
+      }
+    } catch (e) {
+      print("Error checking wishlist: $e");
+    }
+  }
+
+  // Toggle wishlist: tambah atau hapus item
+  Future<void> _toggleWishlist() async {
+    try {
+      final request = context.read<CookieRequest>();
+      final response = await request.post('http://127.0.0.1:8000/wishlist/toggle/', {'car_id': widget.carId},);
+
+      if (response['status'] == 'success') {
+        setState(() {
+          isInWishlist = response['in_wishlist'];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message'])),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update wishlist')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,6 +153,16 @@ class _DetailCarPageState extends State<DetailCarPage> {
                     },
                   ),
                   const SizedBox(height: 16.0),
+
+                  // Toggle wishlist button
+                  IconButton(
+                    icon: Icon(
+                      isInWishlist ? Icons.favorite : Icons.favorite_border,
+                      color: isInWishlist ? Colors.red : Colors.grey,
+                      size: 40,
+                    ),
+                    onPressed: _toggleWishlist,
+                  ),
 
                   // Informasi Mobil
                   _buildDetailRow('Brand', car.fields.brand),

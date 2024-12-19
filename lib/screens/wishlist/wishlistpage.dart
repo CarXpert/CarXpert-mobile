@@ -40,11 +40,8 @@ Future<List<WishlistItem>> fetchWishlist(CookieRequest request, String sortOrder
   } else if (sortOrder == "Oldest Added") {
     listWishlist.sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
-
   return listWishlist;
 }
-
-
 
   void changeSortOrder(String newOrder) {
     setState(() {
