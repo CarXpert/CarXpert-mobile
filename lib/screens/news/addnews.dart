@@ -18,7 +18,7 @@ class _AddArticlePageState extends State<AddArticlePage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _authorController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
-  
+ 
   String? _selectedCategory;
   String? _selectedImage;
   XFile? _pickedFile;
@@ -67,99 +67,96 @@ class _AddArticlePageState extends State<AddArticlePage> {
       try {
         var uri = Uri.parse('http://127.0.0.1:8000/news/api/add/');
         var request = http.MultipartRequest('POST', uri);
+        request.fields['title'] = _titleController.text;
+        request.fields['author'] = _authorController.text;
+        request.fields['category'] = _selectedCategory!;
+        request.fields['content'] = _contentController.text;
 
-          // Add text fields
-          request.fields['title'] = _titleController.text;
-          request.fields['author'] = _authorController.text;
-          request.fields['category'] = _selectedCategory!;
-          request.fields['content'] = _contentController.text;
-
-          // Handle image upload
-          if (_pickedFile != null) {
-            String fileName = path.basename(_pickedFile!.path);
-            String extension = path.extension(fileName).toLowerCase();
-            
-            if (extension.isEmpty) {
-              fileName = '$fileName.jpg';
-              extension = '.jpg';
-            }
-
-            if (kIsWeb) {
-              if (_webImage != null) {
-                request.files.add(
-                  http.MultipartFile.fromBytes(
-                    'image',
-                    _webImage!,
-                    filename: fileName,
-                    contentType: MediaType('image', extension.substring(1)),
-                  ),
-                );
-              }
-            } else {
-              var file = File(_pickedFile!.path);
-              if (await file.exists()) {
-                request.files.add(
-                  await http.MultipartFile.fromPath(
-                    'image',
-                    file.path,
-                    filename: fileName,
-                    contentType: MediaType('image', extension.substring(1)),
-                  ),
-                );
-              }
-            }
+        if (_pickedFile != null) {
+          String fileName = path.basename(_pickedFile!.path);
+          String extension = path.extension(fileName).toLowerCase();
+         
+          if (extension.isEmpty) {
+            fileName = '$fileName.jpg';
+            extension = '.jpg';
           }
 
-          var streamedResponse = await request.send();
-          var response = await http.Response.fromStream(streamedResponse);
-          print('Response status: ${response.statusCode}');
-          print('Response body: ${response.body}');
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
-            var responseData = json.decode(response.body);
-            if (responseData['success'] == true) {
-              String? imageUrl = responseData['image_url'];
-              
-              if (imageUrl != null) {
-                // Extract just the path portion after media/
-                final mediaPath = imageUrl.split('/media/')[1];
-                
-                // Create a constant base URL string
-                const baseUrl = 'http://127.0.0.1:8000';
-                
-                // Combine into final URL
-                final cleanImageUrl = '$baseUrl/media/$mediaPath';
-                
-                // Store the clean URL for image display
-                setState(() {
-                  _selectedImage = cleanImageUrl;
-                });
-                
-                print('Clean Image URL: $cleanImageUrl');
-              }
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Article added successfully!')),
+          if (kIsWeb) {
+            if (_webImage != null) {
+              request.files.add(
+                http.MultipartFile.fromBytes(
+                  'image',
+                  _webImage!,
+                  filename: fileName,
+                  contentType: MediaType('image', extension.substring(1)),
+                ),
               );
-              Navigator.pop(context);
             }
           } else {
-            throw Exception('Failed to add article. Status: ${response.statusCode}');
+            var file = File(_pickedFile!.path);
+            if (await file.exists()) {
+              request.files.add(
+                await http.MultipartFile.fromPath(
+                  'image',
+                  file.path,
+                  filename: fileName,
+                  contentType: MediaType('image', extension.substring(1)),
+                ),
+              );
+            }
           }
-        } catch (e) {
-          print('Error submitting article: $e');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
-          );
         }
+
+        var streamedResponse = await request.send();
+        var response = await http.Response.fromStream(streamedResponse);
+        print('Response status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          var responseData = json.decode(response.body);
+          if (responseData['success'] == true) {
+            String? imageUrl = responseData['image_url'];
+           
+            if (imageUrl != null) {
+              // Extract just the path portion after media/
+              final mediaPath = imageUrl.split('/media/')[1];
+             
+              // Create a constant base URL string
+              const baseUrl = 'http://127.0.0.1:8000';
+             
+              // Combine into final URL
+              final cleanImageUrl = '$baseUrl/media/$mediaPath';
+             
+              // Store the clean URL for image display
+              setState(() {
+                _selectedImage = cleanImageUrl;
+              });
+             
+              print('Clean Image URL: $cleanImageUrl');
+            }
+           
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Article added successfully!')),
+            );
+            Navigator.pop(context);
+          }
+        } else {
+          throw Exception('Failed to add article. Status: ${response.statusCode}');
+        }
+      } catch (e) {
+        print('Error submitting article: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
     }
+  }
 
   Widget _buildImagePreview() {
     if (_pickedFile == null) {
       return Text('No image selected');
     }
-    
+   
     try {
       if (kIsWeb) {
         return Container(
@@ -200,79 +197,131 @@ class _AddArticlePageState extends State<AddArticlePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Article'),
-        backgroundColor: Colors.blue,
+        title: Text('Add Article', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _titleController,
-                  decoration: InputDecoration(labelText: 'Title'),
-                  validator: (value) => value!.isEmpty ? 'Title is required' : null,
-                ),
-                SizedBox(height: 10),
-
-                TextFormField(
-                  controller: _authorController,
-                  decoration: InputDecoration(labelText: 'Author'),
-                  validator: (value) => value!.isEmpty ? 'Author is required' : null,
-                ),
-                SizedBox(height: 10),
-
-                DropdownButtonFormField<String>(
-                  value: _selectedCategory,
-                  items: _categories.map((category) {
-                    return DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCategory = value;
-                    });
-                  },
-                  decoration: InputDecoration(labelText: 'Category'),
-                  validator: (value) =>
-                      value == null ? 'Category is required' : null,
-                ),
-                SizedBox(height: 10),
-
-                TextFormField(
-                  controller: _contentController,
-                  decoration: InputDecoration(labelText: 'Content'),
-                  maxLines: 5,
-                  validator: (value) => value!.isEmpty ? 'Content is required' : null,
-                ),
-                SizedBox(height: 20),
-
-                ElevatedButton(
-                  onPressed: _selectImage,
-                  child: Text('Select Image'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 40),
+      body: Container(
+        color: Colors.white,
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Add New Article",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
-                SizedBox(height: 10),
-
-                _buildImagePreview(),
-
-                SizedBox(height: 20),
-
-                ElevatedButton(
-                  onPressed: _submitArticle,
-                  child: Text('Submit'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 40),
+                  Container(
+                    width: 100,
+                    height: 3,
+                    color: Colors.yellow[700],
+                    margin: EdgeInsets.only(top: 8, bottom: 20),
                   ),
-                ),
-              ],
+                  // Title Field
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Title',
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                    ),
+                    validator: (value) => value!.isEmpty ? 'Title is required' : null,
+                  ),
+                  SizedBox(height: 16),
+
+                  // Author Field
+                  TextFormField(
+                    controller: _authorController,
+                    decoration: InputDecoration(
+                      labelText: 'Author',
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                    ),
+                    validator: (value) => value!.isEmpty ? 'Author is required' : null,
+                  ),
+                  SizedBox(height: 16),
+
+                  // Category Dropdown
+                  DropdownButtonFormField<String>(
+                    value: _selectedCategory,
+                    items: _categories.map((category) {
+                      return DropdownMenuItem(
+                        value: category,
+                        child: Text(category),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCategory = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Category',
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                    ),
+                    validator: (value) => value == null ? 'Category is required' : null,
+                  ),
+                  SizedBox(height: 16),
+
+                  // Content Field
+                  TextFormField(
+                    controller: _contentController,
+                    decoration: InputDecoration(
+                      labelText: 'Content',
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                    ),
+                    maxLines: 5,
+                    validator: (value) => value!.isEmpty ? 'Content is required' : null,
+                  ),
+                  SizedBox(height: 20),
+
+                  // Image Preview
+                  if (_pickedFile != null)
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      margin: EdgeInsets.only(bottom: 16),
+                      child: _buildImagePreview(),
+                    ),
+
+                  // Image Selector Button
+                  ElevatedButton.icon(
+                    onPressed: _selectImage,
+                    icon: Icon(Icons.image),
+                    label: Text('Select Image'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 50),
+                      backgroundColor: Colors.blue,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+
+                  // Submit Button
+                  ElevatedButton(
+                    onPressed: _submitArticle,
+                    child: Text('Submit Article'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 50),
+                      backgroundColor: Colors.blue,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

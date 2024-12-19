@@ -1,6 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
 
 class EditArticlePage extends StatefulWidget {
   final dynamic article;
@@ -18,6 +24,9 @@ class _EditArticlePageState extends State<EditArticlePage> {
   late TextEditingController _contentController;
   String? _selectedCategory;
   String? _selectedImage;
+  XFile? _pickedFile;
+  Uint8List? _webImage;
+  final ImagePicker _picker = ImagePicker();
 
   final List<String> _categories = [
     'Mobil',
@@ -38,59 +47,171 @@ class _EditArticlePageState extends State<EditArticlePage> {
   }
 
   Future<void> _selectImage() async {
-    // Since we're working with server images, we'll just show available options
-    final imageFile = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Select Image'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [],
-            ),
-          ),
-        );
-      },
-    );
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
 
-    if (imageFile != null) {
-      setState(() {
-        _selectedImage = imageFile;
-      });
+      if (pickedFile != null) {
+        setState(() {
+          _pickedFile = pickedFile;
+          _selectedImage = path.basename(pickedFile.path);
+        });
+
+        if (kIsWeb) {
+          final bytes = await pickedFile.readAsBytes();
+          setState(() {
+            _webImage = bytes;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error selecting image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting image: $e')),
+      );
+    }
+  }
+
+  Widget _buildImagePreview() {
+    if (_pickedFile != null) {
+      try {
+        if (kIsWeb) {
+          return Container(
+            height: 200,
+            width: double.infinity,
+            child: _webImage != null
+                ? Image.memory(
+                    _webImage!,
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                : Text('Loading image...'),
+          );
+        } else {
+          return Container(
+            height: 200,
+            width: double.infinity,
+            child: Image.file(
+              File(_pickedFile!.path),
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                print('Image error: $error');
+                return Text('Error loading image: $error');
+              },
+            ),
+          );
+        }
+      } catch (e) {
+        print('Caught error: $e');
+        return Text('Error displaying image: $e');
+      }
+    } else if (_selectedImage != null) {
+      return Container(
+        height: 200,
+        width: double.infinity,
+        child: Image.network(
+          'http://127.0.0.1:8000/media/$_selectedImage',
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey[200],
+              child: Icon(
+                Icons.image,
+                size: 50,
+                color: Colors.grey[400],
+              ),
+            );
+          },
+        ),
+      );
+    } else {
+      return Text('No image selected');
     }
   }
 
   Future<void> _updateArticle() async {
     if (_formKey.currentState!.validate()) {
-      final articleId = widget.article['pk'];
-      final response = await http.put(
-        Uri.parse('http://127.0.0.1:8000/news/api/$articleId/edit/'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'title': _titleController.text,
-          'author': _authorController.text,
-          'category': _selectedCategory,
-          'content': _contentController.text,
-          'image': _selectedImage,
-        }),
-      );
+      try {
+        final articleId = widget.article['pk'];
+        var uri = Uri.parse('http://127.0.0.1:8000/news/api/$articleId/edit/');
+        var request = http.MultipartRequest('POST', uri);
 
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        if (responseData['success'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Article updated successfully!')),
-          );
-          Navigator.pop(context);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${responseData['errors']}')),
-          );
+        request.fields['title'] = _titleController.text;
+        request.fields['author'] = _authorController.text;
+        request.fields['category'] = _selectedCategory!;
+        request.fields['content'] = _contentController.text;
+
+        if (_pickedFile != null) {
+          String fileName = path.basename(_pickedFile!.path);
+          String extension = path.extension(fileName).toLowerCase();
+          
+          if (extension.isEmpty) {
+            fileName = '$fileName.jpg';
+            extension = '.jpg';
+          }
+
+          if (kIsWeb) {
+            if (_webImage != null) {
+              request.files.add(
+                http.MultipartFile.fromBytes(
+                  'image',
+                  _webImage!,
+                  filename: fileName,
+                  contentType: MediaType('image', extension.substring(1)),
+                ),
+              );
+            }
+          } else {
+            var file = File(_pickedFile!.path);
+            if (await file.exists()) {
+              request.files.add(
+                await http.MultipartFile.fromPath(
+                  'image',
+                  file.path,
+                  filename: fileName,
+                  contentType: MediaType('image', extension.substring(1)),
+                ),
+              );
+            }
+          }
         }
-      } else {
+
+        print('Sending request...');
+        var streamedResponse = await request.send();
+        var response = await http.Response.fromStream(streamedResponse);
+        print('Response status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+
+        if (response.statusCode == 200) {
+          var responseData = json.decode(response.body);
+          if (responseData['success'] == true) {
+            if (responseData['image_url'] != null) {
+              setState(() {
+                _selectedImage = responseData['image_url'].split('/media/')[1];
+              });
+            }
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Article updated successfully!')),
+            );
+            Navigator.pop(context);
+          } else {
+            throw Exception('Update failed: ${responseData['errors']}');
+          }
+        } else {
+          throw Exception('Failed to update article. Status: ${response.statusCode}');
+        }
+      } catch (e) {
+        print('Error updating article: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update article')),
+          SnackBar(content: Text('Error: $e')),
         );
       }
     }
@@ -129,7 +250,6 @@ class _EditArticlePageState extends State<EditArticlePage> {
                     color: Colors.yellow[700],
                     margin: EdgeInsets.only(top: 8, bottom: 20),
                   ),
-                  // Title Field
                   TextFormField(
                     controller: _titleController,
                     decoration: InputDecoration(
@@ -142,7 +262,6 @@ class _EditArticlePageState extends State<EditArticlePage> {
                   ),
                   SizedBox(height: 16),
 
-                  // Author Field
                   TextFormField(
                     controller: _authorController,
                     decoration: InputDecoration(
@@ -155,7 +274,6 @@ class _EditArticlePageState extends State<EditArticlePage> {
                   ),
                   SizedBox(height: 16),
 
-                  // Category Dropdown
                   DropdownButtonFormField<String>(
                     value: _selectedCategory,
                     items: _categories.map((category) {
@@ -179,7 +297,6 @@ class _EditArticlePageState extends State<EditArticlePage> {
                   ),
                   SizedBox(height: 16),
 
-                  // Content Field
                   TextFormField(
                     controller: _contentController,
                     decoration: InputDecoration(
@@ -193,33 +310,13 @@ class _EditArticlePageState extends State<EditArticlePage> {
                   ),
                   SizedBox(height: 20),
 
-                  // Image Display
-                  if (_selectedImage != null)
-                    Container(
-                      height: 200,
-                      width: double.infinity,
-                      margin: EdgeInsets.only(bottom: 16),
-                      child: Image.network(
-                        'http://127.0.0.1:8000/media/$_selectedImage',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[200],
-                            child: Icon(
-                              Icons.image,
-                              size: 50,
-                              color: Colors.grey[400],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                  _buildImagePreview(),
+                  SizedBox(height: 16),
 
-                  // Image Selector Button
                   ElevatedButton.icon(
                     onPressed: _selectImage,
                     icon: Icon(Icons.image),
-                    label: Text('Select Image'),
+                    label: Text('Select New Image'),
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 50),
                       backgroundColor: Colors.blue,
@@ -227,7 +324,6 @@ class _EditArticlePageState extends State<EditArticlePage> {
                   ),
                   SizedBox(height: 20),
 
-                  // Update Button
                   ElevatedButton(
                     onPressed: _updateArticle,
                     child: Text('Update Article'),
@@ -243,5 +339,13 @@ class _EditArticlePageState extends State<EditArticlePage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _authorController.dispose();
+    _contentController.dispose();
+    super.dispose();
   }
 }
