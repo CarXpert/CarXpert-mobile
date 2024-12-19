@@ -40,6 +40,9 @@ dependencies:
   pbp_django_auth: ^0.4.0
   http: ^1.2.2
   shared_preferences: ^2.3.3
+  image_picker: ^1.1.2
+  http_parser: ^4.0.2
+  path: ^1.9.0
   
 dev_dependencies:
   flutter_test:

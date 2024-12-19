@@ -35,35 +35,46 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
   }
 
   Future<void> fetchArticles() async {
-    final response = await http.get(Uri.parse('http://127.0.0.1:8000/news/json/'));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List<dynamic>;
-      setState(() {
-        articles = data;
-        authors = data.map((article) => article['fields']['author'] as String).toSet().toList();
-        authors.insert(0, 'All Authors');
-        categories = data.map((article) => article['fields']['category'] as String).toSet().toList();
-        categories.insert(0, 'All Categories');
-        filteredArticles = articles;
-      });
-    } else {
-      throw Exception('Failed to load articles');
+    try {
+      final response = await http.get(Uri.parse('http://127.0.0.1:8000/news/json/'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as List<dynamic>;
+        setState(() {
+          articles = data;
+          authors = data.map((article) => article['fields']['author'] as String).toSet().toList();
+          authors.insert(0, 'All Authors');
+          categories = data.map((article) => article['fields']['category'] as String).toSet().toList();
+          categories.insert(0, 'All Categories');
+          filteredArticles = articles;
+        });
+      } else {
+        throw Exception('Failed to load articles');
+      }
+    } catch (e) {
+      print('Error fetching articles: $e');
     }
   }
 
   Future<void> deleteArticle(int articleId) async {
-    final response = await http.delete(
-      Uri.parse('http://127.0.0.1:8000/news/api/$articleId/delete/'),
-    );
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Article deleted successfully!')),
+    try {
+      final response = await http.delete(
+        Uri.parse('http://127.0.0.1:8000/news/api/$articleId/delete/'),
       );
-      fetchArticles(); // Refresh the list
-    } else {
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Article deleted successfully!')),
+        );
+        fetchArticles();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete article')),
+        );
+      }
+    } catch (e) {
+      print('Error deleting article: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to delete article')),
+        SnackBar(content: Text('Error deleting article: $e')),
       );
     }
   }
@@ -89,13 +100,10 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-      floatingActionButton: 
-      isAdmin 
+      floatingActionButton: isAdmin 
         ? FloatingActionButton(
             onPressed: () {
               Navigator.push(
@@ -110,17 +118,34 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
             tooltip: 'Add Article',
           )
         : null,
-      
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.black, Color(0xFF0F0F3D)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        color: Colors.white,
         child: Column(
           children: [
+            // New Title Section with yellow underline
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                children: [
+                  Text(
+                    "What's New?",
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  Container(
+                    width: 100,
+                    height: 3,
+                    color: Colors.yellow[700],
+                  ),
+                ],
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(10),
               child: Row(
@@ -129,16 +154,17 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                     child: DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: 'Author',
-                        labelStyle: TextStyle(color: Colors.white),
+                        labelStyle: TextStyle(color: Colors.black87),
                         filled: true,
-                        fillColor: Colors.grey[800],
+                        fillColor: Colors.grey[200],
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       value: selectedAuthor,
+                      dropdownColor: Colors.grey[200],
                       items: authors.map((author) {
                         return DropdownMenuItem(
                           value: author,
-                          child: Text(author, style: TextStyle(color: Colors.white)),
+                          child: Text(author, style: TextStyle(color: Colors.black87)),
                         );
                       }).toList(),
                       onChanged: (value) {
@@ -154,16 +180,17 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                     child: DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: 'Category',
-                        labelStyle: TextStyle(color: Colors.white),
+                        labelStyle: TextStyle(color: Colors.black87),
                         filled: true,
-                        fillColor: Colors.grey[800],
+                        fillColor: Colors.grey[200],
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       value: selectedCategory,
+                      dropdownColor: Colors.grey[200],
                       items: categories.map((category) {
                         return DropdownMenuItem(
                           value: category,
-                          child: Text(category, style: TextStyle(color: Colors.white)),
+                          child: Text(category, style: TextStyle(color: Colors.black87)),
                         );
                       }).toList(),
                       onChanged: (value) {
@@ -185,14 +212,13 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                         crossAxisCount: 2,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
-                        childAspectRatio: isAdmin ? 0.9 : 0.8,
+                        childAspectRatio: isAdmin ? 0.65 : 0.75,
                       ),
                       itemCount: filteredArticles.length,
                       itemBuilder: (context, index) {
                         final article = filteredArticles[index]['fields'];
                         final articleId = filteredArticles[index]['pk'];
-                        return 
-                        InkWell(
+                        return InkWell(
                           onTap: () {
                             Navigator.push(
                               context,
@@ -205,56 +231,82 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            color: Colors.grey[850],
-                            elevation: 6,
+                            color: Colors.white,
+                            elevation: 4,
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                                  child: article['image'] != null
-                                      ? Image.network(
-                                          'http://127.0.0.1:8000' + article['image'],
-                                          height: 120,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Container(
-                                          height: 120,
-                                          color: Colors.grey[700],
-                                          child: Icon(Icons.image, color: Colors.white),
-                                        ),
+                                  child: SizedBox(
+                                    height: 120,
+                                    width: double.infinity,
+                                    child: article['image'] != null
+                                        ? Image.network(
+                                            'http://127.0.0.1:8000/media/${article['image']}',
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) {
+                                              print('Error loading image: $error');
+                                              return Container(
+                                                color: Colors.grey[200],
+                                                child: Icon(Icons.image, color: Colors.grey[400]),
+                                              );
+                                            },
+                                          )
+                                        : Container(
+                                            color: Colors.grey[200],
+                                            child: Icon(Icons.image, color: Colors.grey[400]),
+                                          ),
+                                  ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        article['title'],
-                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      SizedBox(height: 5),
-                                      Text(
-                                        '${article['author']} | ${article['category']}',
-                                        style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Text(
-                                        article['content'],
-                                        style: TextStyle(fontSize: 12, color: Colors.grey[300]),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          article['title'],
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                            height: 1.2,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          '${article['author']} | ${article['category']}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[700],
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Expanded(
+                                          child: Text(
+                                            article['content'],
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.grey[600],
+                                              height: 1.4,
+                                            ),
+                                            maxLines: 3,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                                 if (isAdmin)
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         IconButton(
                                           icon: Icon(Icons.edit, color: Colors.blue),
@@ -306,7 +358,7 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                   : Center(
                       child: Text(
                         "No articles match your filters.",
-                        style: TextStyle(color: Colors.grey[400]),
+                        style: TextStyle(color: Colors.grey[600]),
                       ),
                     ),
             ),

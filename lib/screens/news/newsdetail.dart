@@ -13,16 +13,10 @@ class NewsDetailPage extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Hero image with gradient overlay
+          // Background color
           Positioned.fill(
             child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.black, Color(0xFF0F0F3D)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
+              color: Colors.white,
             ),
           ),
           Column(
@@ -35,13 +29,28 @@ class NewsDetailPage extends StatelessWidget {
                     height: mediaQuery.size.height * 0.4,
                     child: fields['image'] != null
                         ? Image.network(
-                            'http://127.0.0.1:8000' + fields['image'],
+                            'http://127.0.0.1:8000/media/${fields['image']}',
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              print('Error loading image: $error');
+                              return Container(
+                                color: Colors.grey[200],
+                                child: Center(
+                                  child: Icon(Icons.image, 
+                                    color: Colors.grey[400], 
+                                    size: 50
+                                  ),
+                                ),
+                              );
+                            },
                           )
                         : Container(
-                            color: Colors.grey[700],
+                            color: Colors.grey[200],
                             child: Center(
-                              child: Icon(Icons.image, color: Colors.white, size: 50),
+                              child: Icon(Icons.image, 
+                                color: Colors.grey[400], 
+                                size: 50
+                              ),
                             ),
                           ),
                   ),
@@ -50,7 +59,7 @@ class NewsDetailPage extends StatelessWidget {
                     height: mediaQuery.size.height * 0.4,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                        colors: [Colors.black.withOpacity(0.3), Colors.transparent],
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
                       ),
@@ -60,10 +69,8 @@ class NewsDetailPage extends StatelessWidget {
                     top: mediaQuery.padding.top + 8,
                     left: 8,
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
+                      icon: Icon(Icons.arrow_back, color: Colors.black),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
                 ],
@@ -71,52 +78,83 @@ class NewsDetailPage extends StatelessWidget {
               // Content Section
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Title
-                      Text(
-                        fields['title'],
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      // Author and Category
-                      Text(
-                        '${fields['author']} • ${fields['category']}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[400],
+                      Container(
+                        width: double.infinity,
+                        child: Text(
+                          fields['title'],
+                          style: TextStyle(
+                            fontSize: 35,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            height: 1.3,
+                          ),
+                          textAlign: TextAlign.left,
                         ),
                       ),
                       SizedBox(height: 16),
-                      // Content
-                      Text(
-                        fields['content'],
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[300],
-                          height: 1.5,
+                      // Author and Category
+                      Container(
+                        width: double.infinity,
+                        child: Text(
+                          '${fields['author']} • ${fields['category']}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[700],
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.left,
                         ),
                       ),
                       SizedBox(height: 24),
+                      // Yellow Divider
+                      Container(
+                        width: double.infinity,
+                        height: 1,
+                        color: Colors.yellow[700],
+                      ),
+                      SizedBox(height: 24),
+                      // Content
+                      Container(
+                        width: double.infinity,
+                        child: Text(
+                          fields['content'],
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                            height: 1.8,
+                            letterSpacing: 0.3,
+                          ),
+                          textAlign: TextAlign.left,
+                        ),
+                      ),
+                      SizedBox(height: 32),
                       // Footer with tags or additional info (optional)
                       if (fields['tags'] != null && fields['tags'].isNotEmpty)
-                        Wrap(
-                          spacing: 8,
-                          children: (fields['tags'] as List<dynamic>)
-                              .map((tag) => Chip(
-                                    label: Text(
-                                      tag,
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    backgroundColor: Colors.blueGrey,
-                                  ))
-                              .toList(),
+                        Container(
+                          width: double.infinity,
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.start,
+                            children: (fields['tags'] as List<dynamic>)
+                                .map((tag) => Chip(
+                                      label: Text(
+                                        tag,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      backgroundColor: Colors.yellow[100],
+                                      padding: EdgeInsets.symmetric(horizontal: 8),
+                                    ))
+                                .toList(),
+                          ),
                         ),
                     ],
                   ),
