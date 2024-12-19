@@ -24,11 +24,10 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
   }
 
   Future<void> fetchCars() async {
-
     String url = "http://127.0.0.1:8000/comparecars/get-cars/";
     try {
       final response = await http.get(Uri.parse(url)).timeout(
-        const Duration(seconds: 10), // Tambahkan timeout
+        const Duration(seconds: 10),
       );
 
       if (response.statusCode == 200) {
@@ -114,30 +113,35 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Compare Cars'),
+        title: const Text('Compare Cars'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
       ),
       backgroundColor: Colors.white,
       body: cars.isEmpty
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Compare Cars",
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: Colors.indigo,
                       ),
                     ),
-                    SizedBox(height: 8),
-                    Divider(thickness: 2),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 4),
+                    Container(
+                      height: 3,
+                      width: 100,
+                      color: Colors.amber,
+                    ),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
@@ -152,7 +156,7 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
                             },
                           ),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: _buildDropdown(
                             label: "Choose Car 2",
@@ -167,7 +171,7 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -176,44 +180,100 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
                         _buildCarImage(selectedCar2, "Car 2"),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     if (isComparisonVisible)
-                      Table(
-                        border: TableBorder.all(color: Colors.grey),
+                      Column(
                         children: [
-                          _buildTableRow("Brand", selectedCar1?.brand, selectedCar2?.brand),
-                          _buildTableRow("Model", selectedCar1?.model, selectedCar2?.model),
-                          _buildTableRow("Year", "${selectedCar1?.year}", "${selectedCar2?.year}"),
-                          _buildTableRow("Fuel Type", selectedCar1?.fuelType.name, selectedCar2?.fuelType.name),
-                          _buildTableRow("Color", selectedCar1?.color, selectedCar2?.color),
-                          _buildTableRow("Price", "${selectedCar1?.priceCash} IDR", "${selectedCar2?.priceCash} IDR"),
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            color: Colors.indigo,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: const [
+                                Text("Spesifikasi",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold)),
+                                Text("Mobil 1",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold)),
+                                Text("Mobil 2",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                          Table(
+                            border: TableBorder.all(color: Colors.grey),
+                            children: [
+                              _buildTableRow("Brand", selectedCar1?.brand,
+                                  selectedCar2?.brand),
+                              _buildTableRow("Model", selectedCar1?.model,
+                                  selectedCar2?.model),
+                              _buildTableRow("Tahun", "${selectedCar1?.year}",
+                                  "${selectedCar2?.year}"),
+                              _buildTableRow(
+                                  "Jenis Bahan Bakar",
+                                  selectedCar1?.fuelType.name,
+                                  selectedCar2?.fuelType.name),
+                              _buildTableRow("Warna", selectedCar1?.color,
+                                  selectedCar2?.color),
+                              _buildTableRow(
+                                "Harga",
+                                "${selectedCar1?.priceCash} IDR",
+                                "${selectedCar2?.priceCash} IDR",
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                    SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: compareCars,
-                          child: Text("Compare Cars"),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                        ),
-                        ElevatedButton(
-                          onPressed: viewAllComparisons,
-                          child: Text("View All Comparison"),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                        ),
-                        ElevatedButton(
-                          onPressed: saveComparison,
-                          child: Text("Save Comparison"),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                        ),
-                      ],
-                    ),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
             ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: compareCars,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text("Compare Cars"),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: viewAllComparisons,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text("View All"),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: saveComparison,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text("Save Comparison"),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -225,7 +285,7 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 16)),
+        Text(label, style: const TextStyle(fontSize: 16)),
         DropdownButton<Car>(
           value: value,
           onChanged: onChanged,
@@ -243,11 +303,6 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
   }
 
   Widget _buildCarImage(Car? car, String placeholder) {
-    if (car != null) {
-      final imagePath = 'assets/images/${car.brand}.png';
-      print('Loading Image: $imagePath'); // Debug path gambar
-    }
-
     return Expanded(
       child: Column(
         children: [
@@ -255,9 +310,10 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
               ? Image.asset(
                   'assets/images/${car.brand}.png',
                   height: 150,
+                  fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    print('Image not found: assets/images/${car.brand}.png');
-                    return const Icon(Icons.image_not_supported, size: 80, color: Colors.grey);
+                    return const Icon(Icons.image_not_supported,
+                        size: 80, color: Colors.grey);
                   },
                 )
               : const Placeholder(fallbackHeight: 150, fallbackWidth: 150),
@@ -270,11 +326,13 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
     );
   }
 
-
   TableRow _buildTableRow(String spec, String? car1Value, String? car2Value) {
     return TableRow(
       children: [
-        Padding(padding: const EdgeInsets.all(8.0), child: Text(spec, style: TextStyle(fontWeight: FontWeight.bold))),
+        Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(spec,
+                style: const TextStyle(fontWeight: FontWeight.bold))),
         Padding(padding: const EdgeInsets.all(8.0), child: Text(car1Value ?? "-")),
         Padding(padding: const EdgeInsets.all(8.0), child: Text(car2Value ?? "-")),
       ],
