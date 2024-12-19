@@ -1,38 +1,12 @@
-// car_xpert/screens/authentication/login.dart
-
 import 'package:flutter/material.dart';
 import 'package:car_xpert/screens/authentication/register.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:car_xpert/screens/mainpage/homescreen.dart'; // Perbarui impor
-import 'package:car_xpert/screens/wishlist/wishlistpage.dart';
-import 'package:car_xpert/screens/comparecars/compare.dart'; 
+import 'package:car_xpert/screens/mainpage/homescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const LoginApp());
-}
-
-class LoginApp extends StatelessWidget {
-  const LoginApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Login',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSwatch(
-          primarySwatch: Colors.blue,
-        ).copyWith(secondary: Colors.green[700]),
-      ),
-      home: const LoginPage(),
-    );
-  }
-}
-
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -41,6 +15,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isPasswordVisible = false; // Untuk toggle visibility password
 
   @override
   Widget build(BuildContext context) {
@@ -48,56 +23,117 @@ class _LoginPageState extends State<LoginPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
+        title: const Text("Login"),
+        backgroundColor: const Color(0xFF1A237E), // Deep Indigo
+        foregroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Aksi kembali ke mainpage
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          },
+        ),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Card(
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Bagian atas (background dan ikon)
+            Container(
+              height: 250,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Color(0xFF1A237E), // Deep Indigo
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(50),
+                  bottomRight: Radius.circular(50),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26, // Warna shadow
+                    offset: Offset(0, 4),  // Posisi shadow (x, y)
+                    blurRadius: 8,         // Jarak blur shadow
+                    spreadRadius: 2,       // Sebaran shadow
+                  ),
+                ],
+              ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Image.asset(
+                    'assets/images/logobulat.png', // Ganti dengan path logo Anda
+                    height: 80,
+                  ),
+                  const SizedBox(height: 20),
                   const Text(
-                    'Login',
+                    "Welcome Back!",
                     style: TextStyle(
-                      fontSize: 24.0,
+                      color: Colors.white,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 30.0),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Form Login
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Username",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
                   TextField(
                     controller: _usernameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Username',
-                      hintText: 'Enter your username',
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.person, color: Colors.orange),
+                      hintText: "Input Username",
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                     ),
                   ),
-                  const SizedBox(height: 12.0),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Password",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
                   TextField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      hintText: 'Enter your password',
+                    obscureText: !_isPasswordVisible, // Kontrol visibilitas
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.lock, color: Colors.orange),
+                      hintText: "Input Password",
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.orange,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
                     ),
-                    obscureText: true,
                   ),
-                  const SizedBox(height: 24.0),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () async {
                       String username = _usernameController.text;
@@ -113,27 +149,22 @@ class _LoginPageState extends State<LoginPage> {
                       if (request.loggedIn) {
                         String message = response['message'];
                         String uname = response['username'];
-                        
-                        // Simpan status admin menggunakan SharedPreferences
+
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('is_admin', response['is_admin'] ?? false);
-                        
-                        // Cek apakah pengguna adalah admin
-                        // Misalnya, jika username adalah 'admin'
-                        await prefs.setBool('is_admin', username == 'admin');
 
                         if (context.mounted) {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const HomeScreen()),
+                              builder: (context) => const HomeScreen(),
+                            ),
                           );
                           ScaffoldMessenger.of(context)
                             ..hideCurrentSnackBar()
                             ..showSnackBar(
                               SnackBar(
-                                  content:
-                                      Text("$message Selamat datang, $uname.")),
+                                  content: Text("$message Selamat datang, $uname.")),
                             );
                         }
                       } else {
@@ -157,34 +188,44 @@ class _LoginPageState extends State<LoginPage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1A237E), // Deep Indigo
                       foregroundColor: Colors.white,
-                      minimumSize: Size(double.infinity, 50),
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    ),
-                    child: const Text('Login'),
-                  ),
-                  const SizedBox(height: 36.0),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const RegisterPage()),
-                      );
-                    },
-                    child: Text(
-                      'Don\'t have an account? Register',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize: 16.0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
+                    child: const Center(
+                      child: Text("Login", style: TextStyle(fontSize: 18)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Don't have an account? "),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const RegisterPage()),
+                          );
+                        },
+                        child: const Text(
+                          "Register",
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

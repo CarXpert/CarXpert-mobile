@@ -33,7 +33,6 @@ class _ViewComparisonPageState extends State<ViewComparisonPage> {
     fetchCars();
   }
 
-  // Ambil semua data mobil dari backend
   Future<void> fetchCars() async {
     try {
       final response = await http.get(
@@ -43,11 +42,9 @@ class _ViewComparisonPageState extends State<ViewComparisonPage> {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
 
-        // Konversi data menjadi list mobil
         setState(() {
           _allCars = data.map((json) => Car.fromJson(json)).toList();
 
-          // Cari mobil berdasarkan brand dan model
           car1 = _findCar(widget.car1Brand, widget.car1Model);
           car2 = _findCar(widget.car2Brand, widget.car2Model);
 
@@ -64,28 +61,28 @@ class _ViewComparisonPageState extends State<ViewComparisonPage> {
     }
   }
 
-  // Cari mobil berdasarkan brand dan model
   Car _findCar(String brand, String model) {
-  return _allCars.firstWhere(
-    (car) => car.brand == brand && car.model == model,
-    orElse: () => Car(
-      id: '',
-      brand: brand,
-      model: model,
-      year: 2020, // Default year
-      fuelType: FuelType.GASOLINE, // Default fuel type
-      color: 'Unknown', // Default color
-      priceCash: 0, // Default price
-    ),
-  );
-}
-
+    return _allCars.firstWhere(
+      (car) => car.brand == brand && car.model == model,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("${widget.car1Brand} vs ${widget.car2Brand}"),
+        title: Column(
+          children: [
+            Text("${widget.car1Brand} vs ${widget.car2Brand}"),
+            const SizedBox(height: 4),
+            Container(
+              height: 3,
+              width: 100,
+              color: Colors.amber,
+            ),
+          ],
+        ),
+        centerTitle: true,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -100,7 +97,6 @@ class _ViewComparisonPageState extends State<ViewComparisonPage> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      // Header dengan gambar dan detail mobil
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -110,8 +106,6 @@ class _ViewComparisonPageState extends State<ViewComparisonPage> {
                         ],
                       ),
                       const SizedBox(height: 16.0),
-
-                      // Tabel perbandingan
                       _buildComparisonTable(car1!, car2!),
                     ],
                   ),
@@ -119,7 +113,6 @@ class _ViewComparisonPageState extends State<ViewComparisonPage> {
     );
   }
 
-  // Widget untuk menampilkan detail mobil
   Widget _buildCarDetails(Car car) {
     return Column(
       children: [
@@ -141,17 +134,45 @@ class _ViewComparisonPageState extends State<ViewComparisonPage> {
     );
   }
 
-  // Widget untuk membangun tabel perbandingan
   Widget _buildComparisonTable(Car car1, Car car2) {
-    return Table(
-      border: TableBorder.all(color: Colors.grey),
+    return Column(
       children: [
-        _buildTableRow("Brand", car1.brand, car2.brand),
-        _buildTableRow("Model", car1.model, car2.model),
-        _buildTableRow("Year", "${car1.year}", "${car2.year}"),
-        _buildTableRow("Fuel Type", car1.fuelType.name, car2.fuelType.name),
-        _buildTableRow("Color", car1.color, car2.color),
-        _buildTableRow("Price", "${car1.priceCash} IDR", "${car2.priceCash} IDR"),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          color: Colors.indigo,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: const [
+              Text(
+                "Spesifikasi",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                "Mobil 1",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                "Mobil 2",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        Table(
+          border: TableBorder.all(color: Colors.grey),
+          children: [
+            _buildTableRow("Brand", car1.brand, car2.brand),
+            _buildTableRow("Model", car1.model, car2.model),
+            _buildTableRow("Year", "${car1.year}", "${car2.year}"),
+            _buildTableRow("Fuel Type", car1.fuelType.name, car2.fuelType.name),
+            _buildTableRow("Color", car1.color, car2.color),
+            _buildTableRow(
+              "Price",
+              "${car1.priceCash} IDR",
+              "${car2.priceCash} IDR",
+            ),
+          ],
+        ),
       ],
     );
   }
