@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:car_xpert/models/comparecarslist.dart' as compareListModel;
+import 'package:car_xpert/models/comparecarslist.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:car_xpert/screens/authentication/login.dart';
-import 'package:car_xpert/screens/comparecars/view_comparison_page.dart';
 
 class ViewAllComparisonPage extends StatefulWidget {
   @override
@@ -13,94 +12,59 @@ class ViewAllComparisonPage extends StatefulWidget {
 }
 
 class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
-  List<compareListModel.CompareCarList> comparisons = [];
+  List<CompareCarList> comparisons = [];
+  String sortOrder = "newest"; // Variabel untuk menyimpan urutan pengurutan
   bool isLoading = true;
-  String sortOrder = "newest";
 
   @override
   void initState() {
     super.initState();
-    fetchComparisons();
+    final request = context.read<CookieRequest>();
+    if (request.loggedIn) {
+      fetchComparisons();
+    } else {
+      // Arahkan pengguna ke halaman login jika belum login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    }
   }
 
-  // Fetch comparisons dari API Django
+
   Future<void> fetchComparisons() async {
-    try {
-      final request = context.read<CookieRequest>();
-      final response = await request.get(
-        "http://127.0.0.1:8000/comparecars/list-comparisons/json/?sort=$sortOrder",
-      );
+  try {
+    // Ambil instance CookieRequest
+    final request = context.read<CookieRequest>();
 
-      if (response != null) {
-        setState(() {
-          comparisons = compareListModel.compareCarListFromJson(
-            jsonEncode(response),
-          );
+    // Kirim permintaan dengan cookie sesi
+    final response = await request.get(
+      "http://127.0.0.1:8000/comparecars/list-comparisons/json/",
+    );
 
-          // Sorting ulang di frontend jika diperlukan
-          if (sortOrder == "newest") {
-            comparisons.sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
-          } else if (sortOrder == "oldest") {
-            comparisons.sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
-          }
-
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      print("Error: $e");
-      setState(() => isLoading = false);
+    if (response != null) {
+      setState(() {
+        // Akses langsung data response tanpa `.body`
+        comparisons = compareCarListFromJson(jsonEncode(response));
+        isLoading = false;
+      });
+    } else {
+      throw Exception("Failed to load comparisons.");
     }
-  }
-
-
-  Future<void> deleteComparison(int id) async {
-    try {
-      final request = context.read<CookieRequest>();
-      final response = await request.post(
-        "http://127.0.0.1:8000/comparecars/compare/$id/",
-        jsonEncode({'method': 'DELETE'}),
-      );
-
-      if (response != null && response['message'] == 'Comparison deleted successfully') {
-        // Hapus item dari daftar comparisons
-        setState(() {
-          comparisons.removeWhere((comparison) => comparison.id == id);
-        });
-        print("Comparison deleted successfully.");
-      } else {
-        print("Failed to delete comparison. Response: $response");
-      }
-    } catch (e) {
-      print("Error deleting comparison: $e");
-    }
-  }
-
-
-
-
-  Future<void> editTitle(int id, String newTitle) async {
-    try {
-      final request = context.read<CookieRequest>();
-      final response = await request.post(
-        "http://127.0.0.1:8000/comparecars/compare/$id/",
-        jsonEncode({'method': 'PUT', 'title': newTitle}),
-      );
-
-      if (response != null) {
-        setState(() {
-          comparisons.firstWhere((comparison) => comparison.id == id).title =
-              newTitle;
-        });
-      }
-    } catch (e) {
-      print("Error editing title: $e");
-    }
-  }
-
-  void changeSortOrder(String newOrder) {
+  } catch (e) {
     setState(() {
-      sortOrder = newOrder;
+      isLoading = false;
+    });
+    print("Error: $e");
+  }
+}
+
+
+
+
+  void changeSortOrder(String newSortOrder) {
+    setState(() {
+      sortOrder = newSortOrder;
       isLoading = true;
     });
     fetchComparisons();
@@ -110,145 +74,132 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text("All Comparisons"),
-            const SizedBox(width: 16), // Jarak antara judul dan dropdown
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                setState(() {
-                  sortOrder = value;
-                  isLoading = true; // Set ke loading state
-                });
-                fetchComparisons(); // Ambil ulang data dengan urutan yang baru
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: "newest", child: Text("Newest")),
-                const PopupMenuItem(value: "oldest", child: Text("Oldest")),
-              ],
-              child: Row(
-                children: [
-                  Text(
-                    sortOrder == "newest" ? "Newest" : "Oldest",
-                    style: const TextStyle(color: Colors.blue),
-                  ),
-                  const Icon(Icons.arrow_drop_down, color: Colors.black),
-                ],
+        title: Text("All Comparisons"),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) => changeSortOrder(value),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: "newest",
+                child: Text("Newest"),
               ),
-            ),
-          ],
-        ),
-        centerTitle: true, // Pusatkan judul dan tombol
+              PopupMenuItem(
+                value: "oldest",
+                child: Text("Oldest"),
+              ),
+            ],
+          ),
+        ],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : comparisons.isEmpty
-              ? const Center(child: Text("No comparisons available"))
+              ? Center(child: Text("No comparisons available"))
               : ListView.builder(
+                  padding: EdgeInsets.all(12.0),
                   itemCount: comparisons.length,
                   itemBuilder: (context, index) {
                     final comparison = comparisons[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                comparison.title,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => _showEditDialog(comparison.id),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () =>
-                                  _confirmDelete(context, comparison.id),
-                            ),
-                          ],
-                        ),
-                        subtitle: Text(
-                          "${comparison.car1.brand} vs ${comparison.car2.brand}",
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ViewComparisonPage(
-                                car1Brand: comparison.car1.brand,
-                                car1Model: comparison.car1.model,
-                                car2Brand: comparison.car2.brand,
-                                car2Model: comparison.car2.model,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                    return ComparisonCard(
+                      comparison: comparison,
+                      onDelete: () => deleteComparison(comparison.id),
                     );
                   },
                 ),
     );
   }
 
-
-  void _confirmDelete(BuildContext context, int id) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Delete Comparison"),
-        content: const Text("Are you sure you want to delete this comparison?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(), // Tutup dialog
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop(); // Tutup dialog
-              await deleteComparison(id); // Hapus dan perbarui UI
-            },
-            child: const Text(
-              "Delete",
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
+  Future<void> deleteComparison(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('http://127.0.0.1:8000/comparecars/delete-comparison/$id/'),
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          comparisons.removeWhere((comparison) => comparison.id == id);
+        });
+      } else {
+        print("Error: Failed to delete comparison. Status code: ${response.statusCode}");
+        throw Exception('Failed to delete comparison');
+      }
+    } catch (e) {
+      print("Error: $e");
+    }
   }
+}
 
+class ComparisonCard extends StatelessWidget {
+  final CompareCarList comparison;
+  final VoidCallback onDelete;
 
+  const ComparisonCard({
+    required this.comparison,
+    required this.onDelete,
+  });
 
-  void _showEditDialog(int id) {
-    final TextEditingController _controller = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Edit Title"),
-        content: TextField(
-          controller: _controller,
-          decoration: const InputDecoration(labelText: "New Title"),
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 8.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    comparison.title ?? 'No Title',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: onDelete,
+                ),
+              ],
+            ),
+            SizedBox(height: 8.0),
+            Row(
+              children: [
+                Expanded(
+                  child: Image.network(
+                    'https://your-static-url.com/images/${comparison.car1.brand}.png',
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.image_not_supported, size: 80, color: Colors.grey);
+                    },
+                  ),
+                ),
+                SizedBox(width: 8.0),
+                Expanded(
+                  child: Image.network(
+                    'https://your-static-url.com/images/${comparison.car2.brand}.png',
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.image_not_supported, size: 80, color: Colors.grey);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              '${comparison.car1.brand} (${comparison.car1.model}) vs ${comparison.car2.brand} (${comparison.car2.model})',
+              style: TextStyle(fontSize: 14),
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              'Date Added: ${comparison.dateAdded.toLocal()}',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (_controller.text.isNotEmpty) {
-                editTitle(id, _controller.text);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text("Save"),
-          ),
-        ],
       ),
     );
   }

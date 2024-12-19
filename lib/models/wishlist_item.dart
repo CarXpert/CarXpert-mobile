@@ -1,3 +1,7 @@
+// To parse this JSON data, do
+//
+//     final wishlistItem = wishlistItemFromJson(jsonString);
+
 import 'dart:convert';
 
 List<WishlistItem> wishlistItemFromJson(String str) => List<WishlistItem>.from(json.decode(str).map((x) => WishlistItem.fromJson(x)));
@@ -5,53 +9,57 @@ List<WishlistItem> wishlistItemFromJson(String str) => List<WishlistItem>.from(j
 String wishlistItemToJson(List<WishlistItem> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 class WishlistItem {
-    String model;
     int pk;
-    Fields fields;
-
-    WishlistItem({
-        required this.model,
-        required this.pk,
-        required this.fields,
-    });
-
-    factory WishlistItem.fromJson(Map<String, dynamic> json) => WishlistItem(
-        model: json["model"],
-        pk: json["pk"],
-        fields: Fields.fromJson(json["fields"]),
-    );
-
-    Map<String, dynamic> toJson() => {
-        "model": model,
-        "pk": pk,
-        "fields": fields.toJson(),
-    };
-}
-
-class Fields {
-    int user;
-    String car;
+    Car car;
     String? notes;
     DateTime createdAt;
 
-    Fields({
-        required this.user,
+    WishlistItem({
+        required this.pk,
         required this.car,
         required this.notes,
         required this.createdAt,
     });
 
-    factory Fields.fromJson(Map<String, dynamic> json) => Fields(
-        user: json["user"],
-        car: json["car"],
+    factory WishlistItem.fromJson(Map<String, dynamic> json) => WishlistItem(
+        pk: json["pk"],
+        car: Car.fromJson(json["car"]),
         notes: json["notes"],
         createdAt: DateTime.parse(json["created_at"]),
     );
 
     Map<String, dynamic> toJson() => {
-        "user": user,
-        "car": car,
+        "pk": pk,
+        "car": car.toJson(),
         "notes": notes,
         "created_at": createdAt.toIso8601String(),
+    };
+}
+
+class Car {
+    String carId;
+    String brand;
+    String carType;
+    String showroom;
+
+    Car({
+        required this.carId,
+        required this.brand,
+        required this.carType,
+        required this.showroom,
+    });
+
+    factory Car.fromJson(Map<String, dynamic> json) => Car(
+        carId: json["carId"],
+        brand: json["brand"],
+        carType: json["car_type"],
+        showroom: json["showroom"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "carId": carId,
+        "brand": brand,
+        "car_type": carType,
+        "showroom": showroom,
     };
 }

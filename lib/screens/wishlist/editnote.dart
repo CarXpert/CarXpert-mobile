@@ -17,7 +17,7 @@ class _EditNotePageState extends State<EditNotePage> {
   void initState() {
     super.initState();
     // Initialize the controller with the current note
-    _noteController.text = widget.item.fields.notes ?? '';
+    _noteController.text = widget.item.notes ?? '';
   }
 
   void _saveNote() {
@@ -32,7 +32,7 @@ class _EditNotePageState extends State<EditNotePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Note for ${widget.item.fields.car}'),
+        title: Text('Edit Note for ${widget.item.car.brand}'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -53,7 +53,7 @@ class _EditNotePageState extends State<EditNotePage> {
             ClipRRect(
               borderRadius: BorderRadius.circular(5.0),
               child: Image.asset(
-                'assets/images/${widget.item.fields.car}.png', // Placeholder path
+                'assets/images/${widget.item.car.brand}.png', // Placeholder path
                 height: 120,
                 fit: BoxFit.cover,
               ),
