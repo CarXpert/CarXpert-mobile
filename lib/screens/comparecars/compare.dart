@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:car_xpert/screens/comparecars/list_compare.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:car_xpert/screens/authentication/login.dart';
 
 class CarComparisonPage extends StatefulWidget {
   @override
@@ -60,6 +61,15 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
   }
 
   void saveComparison() async {
+    final request = context.read<CookieRequest>();
+    if (!request.loggedIn) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+      return;
+    }
+
     if (selectedCar1 == null || selectedCar2 == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select two cars to save comparison')),
@@ -75,8 +85,6 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
     print("Request Body: $bodyData");
 
     try {
-      final request = context.read<CookieRequest>();
-
       final response = await request.post(
         "http://127.0.0.1:8000/comparecars/compare/",
         bodyData,
@@ -101,6 +109,15 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
   }
 
   void viewAllComparisons() {
+    final request = context.read<CookieRequest>();
+    if (!request.loggedIn) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
