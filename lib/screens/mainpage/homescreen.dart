@@ -95,26 +95,39 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Fungsi untuk menghapus mobil
-  // Future<void> _deleteCar(String carId) async {
-  //   final request = context.read<CookieRequest>();
-  //   final deleteUrl = 'http:main/delete_car/$carId/';
+  void _deleteCar(String carId) async {
+    final request = context.read<CookieRequest>();
+    final url = 'http://127.0.0.1:8000/main/delete_car/$carId/';
 
-  //   final response = await request.delete(deleteUrl, {});
+    try {
+      // Kirim permintaan POST dengan body sebagai string JSON
+      final response = await request.post(
+        url,
+        jsonEncode({'method': 'DELETE'}),
+      );
 
-  //   if (response['status'] == 'success') {
-  //     // Jika berhasil, refresh daftar mobil
-  //     setState(() {
-  //       _carList = fetchCarList();
-  //     });
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text("Mobil berhasil dihapus.")),
-  //     );
-  //   } else {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text("Gagal menghapus mobil: ${response['message']}")),
-  //     );
-  //   }
-  // }
+      if (response['success']) {
+        // Tampilkan SnackBar sukses
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Mobil berhasil dihapus.")),
+        );
+        // Perbarui daftar mobil
+        setState(() {
+          _carList = fetchCarList();
+        });
+      } else {
+        // Tampilkan SnackBar gagal dengan pesan dari server
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Gagal menghapus mobil: ${response['error'] ?? 'Unknown error.'}")),
+        );
+      }
+    } catch (e) {
+      // Tampilkan SnackBar gagal dengan pesan kesalahan
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,117 +178,125 @@ class _HomeScreenState extends State<HomeScreen> {
           } else {
             // Jika data tersedia
             final cars = snapshot.data!;
-            return GridView.builder(
-              padding: const EdgeInsets.all(8.0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10.0,
-                mainAxisSpacing: 10.0,
-                childAspectRatio: 0.7,
-              ),
-              itemCount: cars.length,
-              itemBuilder: (context, index) {
-                final car = cars[index];
-                // URL gambar berdasarkan brand mobil
-                final imageUrl =
-                    'http://127.0.0.1:8000/static/images/${car.fields.brand.replaceAll(' ', '_')}.png';
-
-                return Card(
-                  elevation: 5,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Gambar mobil berdasarkan brand
-                      Image.network(
-                        imageUrl, // Menggunakan URL gambar dari Django static folder
-                        height: 150,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Center(
-                              child: Icon(Icons.image_not_supported,
-                                  size:
-                                      50)); // Placeholder jika gambar tidak ditemukan
-                        },
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(car.fields.brand,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
-                            Text(
-                                'Model: ${fieldsModelValues.reverse[car.fields.model]}',
-                                style: const TextStyle(fontSize: 12)),
-                            Text('Color: ${car.fields.color}',
-                                style: const TextStyle(fontSize: 12)),
-                            Text('Year: ${car.fields.year}',
-                                style: const TextStyle(fontSize: 12)),
-                            Text('Mileage: ${car.fields.mileage} km',
-                                style: const TextStyle(fontSize: 12)),
-                            Text('Price: \Rp. ${car.fields.priceCash}',
-                                style: const TextStyle(
-                                    fontSize: 12, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8.0),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    // Navigasi ke DetailCarPage dengan mengirimkan car ID
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            DetailCarPage(carId: car.pk),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text('Detail'),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
-                                  onPressed: () {
-                                    // Tampilkan konfirmasi sebelum menghapus
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: const Text('Hapus Mobil'),
-                                        content: const Text(
-                                            'Apakah Anda yakin ingin menghapus mobil ini?'),
-                                        actions: [
-                                          TextButton(
-                                            child: const Text('Batal'),
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                          ),
-                                          TextButton(
-                                            child: const Text('Hapus',
-                                                style: TextStyle(
-                                                    color: Colors.red)),
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                              // _deleteCar(car.pk);
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
+            return RefreshIndicator(
+              onRefresh: () async {
+                setState(() {
+                  _carList = fetchCarList();
+                });
               },
+              child: GridView.builder(
+                padding: const EdgeInsets.all(8.0),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10.0,
+                  mainAxisSpacing: 10.0,
+                  childAspectRatio: 0.7,
+                ),
+                itemCount: cars.length,
+                itemBuilder: (context, index) {
+                  final car = cars[index];
+                  // Path gambar berdasarkan brand mobil di aset
+                  final imagePath = 'assets/images/${car.fields.brand.replaceAll(' ', '_')}.png';
+                  print('Loading image: $imagePath'); // Debugging
+                  return Card(
+                    elevation: 5,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Gambar mobil dari aset
+                        Expanded(
+                          child: Image.asset(
+                            imagePath,
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                  child: Icon(Icons.image_not_supported,
+                                      size: 50)); // Placeholder jika gambar tidak ditemukan
+                            },
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(car.fields.carType,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              Text('Brand: ${car.fields.brand}',
+                                  style: const TextStyle(fontSize: 12)),
+                              Text('Model: ${fieldsModelValues.reverse[car.fields.model]}',
+                                  style: const TextStyle(fontSize: 12)),
+                              Text('Color: ${car.fields.color}',
+                                  style: const TextStyle(fontSize: 12)),
+                              Text('Year: ${car.fields.year}',
+                                  style: const TextStyle(fontSize: 12)),
+                              Text('Mileage: ${car.fields.mileage} km',
+                                  style: const TextStyle(fontSize: 12)),
+                              Text('Price: \Rp. ${car.fields.priceCash}',
+                                  style: const TextStyle(
+                                      fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 8.0),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Navigasi ke DetailCarPage dengan mengirimkan car ID
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              DetailCarPage(carId: car.pk),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('Detail'),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
+                                    onPressed: () {
+                                      // Tampilkan konfirmasi sebelum menghapus
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text('Hapus Mobil'),
+                                          content: const Text(
+                                              'Apakah Anda yakin ingin menghapus mobil ini?'),
+                                          actions: [
+                                            TextButton(
+                                              child: const Text('Batal'),
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                            ),
+                                            TextButton(
+                                              child: const Text('Hapus',
+                                                  style: TextStyle(
+                                                      color: Colors.red)),
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                                _deleteCar(car.pk);
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             );
           }
         },

@@ -76,14 +76,18 @@ class _DetailCarPageState extends State<DetailCarPage> {
             final CarEntry car = data['car'];
             final showroom = data['showroom'];
 
+            // Path gambar berdasarkan brand mobil di aset
+            final imagePath =
+                'assets/images/${car.fields.brand.replaceAll(' ', '_')}.png';
+
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Gambar Mobil
-                  Image.network(
-                    'http://127.0.0.1:8000/static/images/${car.fields.brand.replaceAll(' ', '_')}.png',
+                  // Gambar Mobil dari aset
+                  Image.asset(
+                    imagePath,
                     height: 200,
                     width: double.infinity,
                     fit: BoxFit.cover,
