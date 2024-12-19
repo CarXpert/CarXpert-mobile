@@ -130,7 +130,7 @@ class _ViewComparisonPageState extends State<ViewComparisonPage> {
         ),
         const SizedBox(height: 8.0),
         Image.network(
-          'https://your-static-url.com/images/${car.brand}.png',
+          'assets/images/${car.brand}.png',
           height: 150,
           errorBuilder: (context, error, stackTrace) {
             return const Icon(Icons.image_not_supported,
