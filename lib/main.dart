@@ -22,10 +22,10 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: Colors.deepPurple,
-          ).copyWith(secondary: Colors.deepPurple[400]),
+            primarySwatch: Colors.indigo,
+          ).copyWith(secondary: Colors.indigo[400]),
         ),
-        home: const HomeScreen(), // Ubah menjadi HomeScreen
+        home: const HomeScreen(), 
       ),
     );
   }

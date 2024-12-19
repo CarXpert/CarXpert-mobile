@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:car_xpert/models/comparecarslist.dart' as compareListModel;
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:car_xpert/screens/authentication/login.dart';
+import 'package:car_xpert/screens/comparecars/compare.dart';
 import 'package:car_xpert/screens/comparecars/view_comparison_page.dart';
+import 'dart:convert';
 
 class ViewAllComparisonPage extends StatefulWidget {
   @override
@@ -23,7 +22,6 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
     fetchComparisons();
   }
 
-  // Fetch comparisons dari API Django
   Future<void> fetchComparisons() async {
     try {
       final request = context.read<CookieRequest>();
@@ -37,7 +35,6 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
             jsonEncode(response),
           );
 
-          // Sorting ulang di frontend jika diperlukan
           if (sortOrder == "newest") {
             comparisons.sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
           } else if (sortOrder == "oldest") {
@@ -53,7 +50,6 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
     }
   }
 
-
   Future<void> deleteComparison(int id) async {
     try {
       final request = context.read<CookieRequest>();
@@ -62,22 +58,26 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
         jsonEncode({'method': 'DELETE'}),
       );
 
-      if (response != null && response['message'] == 'Comparison deleted successfully') {
-        // Hapus item dari daftar comparisons
+      if (response != null &&
+          response['message'] == 'Comparison deleted successfully') {
         setState(() {
           comparisons.removeWhere((comparison) => comparison.id == id);
         });
-        print("Comparison deleted successfully.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Comparison deleted successfully")),
+        );
       } else {
-        print("Failed to delete comparison. Response: $response");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to delete comparison")),
+        );
       }
     } catch (e) {
       print("Error deleting comparison: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
     }
   }
-
-
-
 
   Future<void> editTitle(int id, String newTitle) async {
     try {
@@ -87,14 +87,25 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
         jsonEncode({'method': 'PUT', 'title': newTitle}),
       );
 
-      if (response != null) {
+      if (response != null &&
+          response['message'] == 'Comparison updated successfully') {
         setState(() {
           comparisons.firstWhere((comparison) => comparison.id == id).title =
               newTitle;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Title updated successfully")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to update title")),
+        );
       }
     } catch (e) {
-      print("Error editing title: $e");
+      print("Error updating title: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
     }
   }
 
@@ -110,36 +121,43 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        title: Column(
           children: [
-            const Text("All Comparisons"),
-            const SizedBox(width: 16), // Jarak antara judul dan dropdown
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                setState(() {
-                  sortOrder = value;
-                  isLoading = true; // Set ke loading state
-                });
-                fetchComparisons(); // Ambil ulang data dengan urutan yang baru
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: "newest", child: Text("Newest")),
-                const PopupMenuItem(value: "oldest", child: Text("Oldest")),
-              ],
-              child: Row(
-                children: [
-                  Text(
-                    sortOrder == "newest" ? "Newest" : "Oldest",
-                    style: const TextStyle(color: Colors.blue),
-                  ),
-                  const Icon(Icons.arrow_drop_down, color: Colors.black),
-                ],
+            const Text(
+              "All Comparisons",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              height: 3,
+              width: 100,
+              color: Colors.amber,
             ),
           ],
         ),
-        centerTitle: true, // Pusatkan judul dan tombol
+        centerTitle: true,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: changeSortOrder,
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: "newest", child: Text("Newest")),
+              const PopupMenuItem(value: "oldest", child: Text("Oldest")),
+            ],
+            child: Row(
+              children: [
+                Text(
+                  sortOrder == "newest" ? "Newest" : "Oldest",
+                  style: const TextStyle(color: Colors.indigo),
+                ),
+                const Icon(Icons.arrow_drop_down, color: Colors.black),
+              ],
+            ),
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -157,11 +175,13 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
                             Expanded(
                               child: Text(
                                 comparison.title,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              icon:
+                                  const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () => _showEditDialog(comparison.id),
                             ),
                             IconButton(
@@ -191,9 +211,18 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
                     );
                   },
                 ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CarComparisonPage()),
+          ).then((_) => fetchComparisons());
+        },
+        child: const Icon(Icons.add),
+        backgroundColor: Colors.blue,
+      ),
     );
   }
-
 
   void _confirmDelete(BuildContext context, int id) {
     showDialog(
@@ -203,13 +232,13 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
         content: const Text("Are you sure you want to delete this comparison?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(), // Tutup dialog
+            onPressed: () => Navigator.of(ctx).pop(),
             child: const Text("Cancel"),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.of(ctx).pop(); // Tutup dialog
-              await deleteComparison(id); // Hapus dan perbarui UI
+              Navigator.of(ctx).pop();
+              await deleteComparison(id);
             },
             child: const Text(
               "Delete",
@@ -220,8 +249,6 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
       ),
     );
   }
-
-
 
   void _showEditDialog(int id) {
     final TextEditingController _controller = TextEditingController();

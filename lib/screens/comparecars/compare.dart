@@ -149,7 +149,7 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -260,7 +260,8 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
               child: ElevatedButton(
                 onPressed: compareCars,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Text("Compare Cars"),
@@ -271,7 +272,8 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
               child: ElevatedButton(
                 onPressed: viewAllComparisons,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Text("View All"),
@@ -282,7 +284,8 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
               child: ElevatedButton(
                 onPressed: saveComparison,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Text("Save Comparison"),
