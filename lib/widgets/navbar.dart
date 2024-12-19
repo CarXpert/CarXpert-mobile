@@ -1,8 +1,4 @@
-
-
 import 'package:flutter/material.dart';
-import 'package:car_xpert/screens/wishlist/wishlistpage.dart';  
-import 'package:car_xpert/screens/comparecars/compare.dart'; 
 
 class MyBottomNavBar extends StatelessWidget {
   final int currentIndex;

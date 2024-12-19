@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:car_xpert/models/wishlist_item.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 
 class EditNotePage extends StatefulWidget {
   final WishlistItem item;
@@ -20,16 +22,38 @@ class _EditNotePageState extends State<EditNotePage> {
     _noteController.text = widget.item.notes ?? '';
   }
 
-  void _saveNote() {
-    // Here, you would normally save the note to the server or update the state
-    // For now, we will just print the updated note.
-    String updatedNote = _noteController.text;
-    print('Updated Note: $updatedNote');
-    Navigator.pop(context, updatedNote); // Pass back the updated note
+  Future<void> saveNoteToBackend(CookieRequest request) async {
+    final carId = widget.item.car.carId.toString();
+    final note = _noteController.text;
+    
+    try {
+      final response = await request.post(
+        'http://127.0.0.1:8000/wishlist/edit-note-api/',
+        {'car_id': carId, 'note': note},
+      );
+
+      if (response['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message'] ?? 'Note updated successfully.')),
+        );
+        Navigator.pop(context, note); 
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update note: ${response['message']}')),
+        );
+      }
+    } catch (e) {
+      print('An error occurred: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('An error occurred: $e'))      
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Edit Note for ${widget.item.car.brand}'),
@@ -53,7 +77,7 @@ class _EditNotePageState extends State<EditNotePage> {
             ClipRRect(
               borderRadius: BorderRadius.circular(5.0),
               child: Image.asset(
-                'assets/images/${widget.item.car.brand}.png', // Placeholder path
+                'assets/images/${widget.item.car.brand}.png',
                 height: 120,
                 fit: BoxFit.cover,
               ),
@@ -76,7 +100,9 @@ class _EditNotePageState extends State<EditNotePage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
-                  onPressed: _saveNote,
+                  onPressed: () async {
+                    await saveNoteToBackend(request);
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(
