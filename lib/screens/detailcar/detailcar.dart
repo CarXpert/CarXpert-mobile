@@ -18,7 +18,7 @@ class DetailCarPage extends StatefulWidget {
 
 class _DetailCarPageState extends State<DetailCarPage> {
   late Future<Map<String, dynamic>> _carDetailWithShowroom;
-  bool isAdmin = false; // Status peran admin
+  bool isAdmin = false; 
   bool isInWishlist = false;
 
   @override

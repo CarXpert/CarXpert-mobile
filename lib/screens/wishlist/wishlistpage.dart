@@ -7,15 +7,14 @@ import 'package:car_xpert/screens/wishlist/editnote.dart';
 
 class WishlistPage extends StatefulWidget {
   const WishlistPage({super.key});
+
   @override
   State<WishlistPage> createState() => _WishlistPageState();
 }
 
 class _WishlistPageState extends State<WishlistPage> {
   List<WishlistItem> wishlist = [];
-  bool isLoading = true;
   String sortOrder = "Newest Added";
-  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -115,64 +114,34 @@ class _WishlistPageState extends State<WishlistPage> {
       ),
       body: Column(
         children: [
+          // Sort Dropdown
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Search Bar
-                Container(
-                  height: 50,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.search, color: Colors.grey),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: const InputDecoration(
-                            hintText: 'Search car...',
-                            border: InputBorder.none,
-                            hintStyle: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+            child: Container(
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.orange),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  isExpanded: true,
+                  value: sortOrder,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      sortOrder = newValue!;
+                    });
+                  },
+                  items: <String>['Newest Added', 'Oldest Added']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
                 ),
-                const SizedBox(height: 16),
-                // Sort Dropdown
-                Container(
-                  height: 50,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.orange),
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      value: sortOrder,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          sortOrder = newValue!;
-                        });
-                      },
-                      items: <String>['Newest Added', 'Oldest Added']
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           Expanded(
@@ -199,32 +168,30 @@ class _WishlistPageState extends State<WishlistPage> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
-                      childAspectRatio: 0.75, // Adjusted aspect ratio
+                      childAspectRatio: 0.65, // Rasio tinggi-lebar disesuaikan
                     ),
                     itemCount: wishlist.length,
                     itemBuilder: (context, index) {
                       final item = wishlist[index];
-                    return Card(
-                      clipBehavior: Clip.antiAlias,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Image Container
-                          Expanded(
-                            flex: 5, // Adjusted flex
-                            child: Image.asset(
-                              'assets/images/${item.car.brand}.png',
-                              width: double.infinity,
-                              fit: BoxFit.cover,
+                      return Card(
+                        clipBehavior: Clip.antiAlias,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Image
+                            Expanded(
+                              flex: 6, // Berikan lebih banyak ruang untuk gambar
+                              child: Image.asset(
+                                'assets/images/${item.car.brand}.png',
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                          ),
-                          // Content Container
-                          Expanded(
-                            flex: 4, // Bagian konten
-                            child: Padding(
+                            // Content
+                            Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,9 +224,8 @@ class _WishlistPageState extends State<WishlistPage> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const Spacer(), // Membuat tombol tetap berada di bawah
+                                  const SizedBox(height: 8),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
                                         child: ElevatedButton(
@@ -276,23 +242,16 @@ class _WishlistPageState extends State<WishlistPage> {
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: const Color.fromARGB(255, 7, 73, 128),
                                             minimumSize: const Size(0, 30),
-                                            padding: EdgeInsets.zero,
                                           ),
                                           child: const Text(
-                                            'View Details',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.white,
-                                            ),
+                                            'Details',
+                                            style: TextStyle(fontSize: 8, color: Colors.white),
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 4),
+                                      const SizedBox(width: 6),
                                       IconButton(
                                         icon: const Icon(Icons.edit, size: 16),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        color: Colors.orange,
                                         onPressed: () async {
                                           final updatedNote = await Navigator.push(
                                             context,
@@ -310,8 +269,6 @@ class _WishlistPageState extends State<WishlistPage> {
                                       const SizedBox(width: 4),
                                       IconButton(
                                         icon: const Icon(Icons.delete, size: 16),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
                                         color: Colors.red,
                                         onPressed: () {
                                           _confirmRemoveItem(context, item.car.carId, request);
@@ -322,10 +279,9 @@ class _WishlistPageState extends State<WishlistPage> {
                                 ],
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
+                          ],
+                        ),
+                      );
                     },
                   ),
                 );

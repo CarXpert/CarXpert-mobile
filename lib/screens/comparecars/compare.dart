@@ -336,7 +336,11 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
                         size: 80, color: Colors.grey);
                   },
                 )
-              : const Placeholder(fallbackHeight: 150, fallbackWidth: 150),
+              : Image.asset(
+                'assets/images/logobulat.png', // Gambar placeholder
+                height: 150,
+                fit: BoxFit.cover,
+              ),
           Text(
             car != null ? '${car.brand} ${car.model}' : placeholder,
             style: const TextStyle(fontWeight: FontWeight.bold),
