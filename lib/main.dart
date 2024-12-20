@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
       },
       child: MaterialApp(
         title: 'Car-Xpert',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSwatch(
