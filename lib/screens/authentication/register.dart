@@ -28,22 +28,21 @@ class _RegisterPageState extends State<RegisterPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Bagian atas (background dan ikon)
             Container(
               height: 300,
               width: double.infinity,
               decoration: const BoxDecoration(
-                color: Color(0xFF1A237E), // Deep Indigo
+                color: Color(0xFF1A237E), 
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(50),
                   bottomRight: Radius.circular(50),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black26, // Warna shadow
-                    offset: Offset(0, 4), // Posisi shadow
-                    blurRadius: 8, // Blur radius
-                    spreadRadius: 2, // Sebaran shadow
+                    color: Colors.black26, 
+                    offset: Offset(0, 4), 
+                    blurRadius: 8, 
+                    spreadRadius: 2, 
                   ),
                 ],
               ),
@@ -51,7 +50,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    'assets/images/logobulat.png', // Ganti dengan path logo Anda
+                    'assets/images/logobulat.png', 
                     height: 100,
                   ),
                   const SizedBox(height: 20),
@@ -69,7 +68,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
             const SizedBox(height: 32),
 
-            // Form Register
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
@@ -124,7 +122,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         onPressed: () {
                           setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
+                            _isPasswordVisible =
+                                !_isPasswordVisible;
                           });
                         },
                       ),
@@ -200,13 +199,13 @@ class _RegisterPageState extends State<RegisterPage> {
                         } else {
                           setState(() {
                             _errorMessage = response['message'] ??
-                                'Failed to register!'; // Tampilkan pesan error dari backend
+                                'Failed to register!'; 
                           });
                         }
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A237E), // Deep Indigo
+                      backgroundColor: const Color(0xFF1A237E), 
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),

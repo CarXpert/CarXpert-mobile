@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:car_xpert/models/comparecarslist.dart' as compareListModel;
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:car_xpert/screens/comparecars/compare.dart';
 import 'package:car_xpert/screens/comparecars/view_comparison_page.dart';
+import 'package:car_xpert/screens/comparecars/compare.dart';
 import 'dart:convert';
 
 class ViewAllComparisonPage extends StatefulWidget {
@@ -87,25 +87,14 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
         jsonEncode({'method': 'PUT', 'title': newTitle}),
       );
 
-      if (response != null &&
-          response['message'] == 'Comparison updated successfully') {
+      if (response != null) {
         setState(() {
           comparisons.firstWhere((comparison) => comparison.id == id).title =
               newTitle;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Title updated successfully")),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to update title")),
-        );
       }
     } catch (e) {
-      print("Error updating title: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      print("Error editing title: $e");
     }
   }
 
@@ -163,92 +152,154 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
           ? const Center(child: CircularProgressIndicator())
           : comparisons.isEmpty
               ? const Center(child: Text("No comparisons available"))
-              : ListView.builder(
-                  itemCount: comparisons.length,
-                  itemBuilder: (context, index) {
-                    final comparison = comparisons[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                comparison.title,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            IconButton(
-                              icon:
-                                  const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => _showEditDialog(comparison.id),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () =>
-                                  _confirmDelete(context, comparison.id),
-                            ),
-                          ],
-                        ),
-                        subtitle: Text(
-                          "${comparison.car1.brand} vs ${comparison.car2.brand}",
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ViewComparisonPage(
-                                car1Brand: comparison.car1.brand,
-                                car1Model: comparison.car1.model,
-                                car2Brand: comparison.car2.brand,
-                                car2Model: comparison.car2.model,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
+              : Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2, 
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.75, 
+                    ),
+                    itemCount: comparisons.length,
+                    itemBuilder: (context, index) {
+                      final comparison = comparisons[index];
+                      return _buildComparisonCard(context, comparison);
+                    },
+                  ),
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => CarComparisonPage()),
+            MaterialPageRoute(builder: (context) => CarComparisonPage()), 
           ).then((_) => fetchComparisons());
         },
         child: const Icon(Icons.add),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.amber,
       ),
     );
   }
 
-  void _confirmDelete(BuildContext context, int id) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Delete Comparison"),
-        content: const Text("Are you sure you want to delete this comparison?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              await deleteComparison(id);
-            },
-            child: const Text(
-              "Delete",
-              style: TextStyle(color: Colors.red),
+  Widget _buildComparisonCard(BuildContext context, compareListModel.CompareCarList comparison) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+        
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(0)),
+                      child: Image.asset(
+                        'assets/images/${comparison.car1.brand}.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Icon(Icons.image_not_supported,
+                                  size: 40, color: Colors.grey),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(0)),
+                      child: Image.asset(
+                        'assets/images/${comparison.car2.brand}.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Icon(Icons.image_not_supported,
+                                  size: 40, color: Colors.grey),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                )
+              ],
             ),
+          ),
+         
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${comparison.title}",
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                Text("${comparison.car1.brand} vs ${comparison.car2.brand}"),
+              ],
+            ),
+          ),
+         
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.amber),
+                onPressed: () => _showEditDialog(comparison.id),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _confirmDelete(context, comparison.id),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ViewComparisonPage(
+                          car1Brand: comparison.car1.brand,
+                          car1Model: comparison.car1.model,
+                          car2Brand: comparison.car2.brand,
+                          car2Model: comparison.car2.model,
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text("Detail"),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+
 
   void _showEditDialog(int id) {
     final TextEditingController _controller = TextEditingController();
@@ -274,6 +325,32 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
               }
             },
             child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, int id) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Delete Comparison"),
+        content: const Text("Are you sure you want to delete this comparison?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await deleteComparison(id);
+            },
+            child: const Text(
+              "Delete",
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),

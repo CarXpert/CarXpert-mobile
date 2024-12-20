@@ -28,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _selectedYearFilter;
   String? _selectedModelFilter;
   String _sortOrder = 'newest';
+  String _searchQuery = ''; 
 
   Future<List<CarEntry>> fetchCarList() async {
     final response = await http.get(Uri.parse('http://127.0.0.1:8000/main/json/'));
@@ -53,6 +54,15 @@ class _HomeScreenState extends State<HomeScreen> {
       filteredCars = filteredCars.where((car) => 
         car.fields.year == year
       ).toList();
+    }
+
+    if (_searchQuery.isNotEmpty) {
+      filteredCars = filteredCars.where((car) {
+        final brand = car.fields.brand.toLowerCase();
+        final model = fieldsModelValues.reverse[car.fields.model]!.toLowerCase();
+        return brand.contains(_searchQuery.toLowerCase()) ||
+               model.contains(_searchQuery.toLowerCase());
+      }).toList();
     }
 
     filteredCars.sort((a, b) {
@@ -354,12 +364,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Find the Perfect Ride',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w500,
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      hintText: "Search cars by brand or model...",
+                      border: InputBorder.none,
+                      icon: Icon(Icons.search, color: Colors.black54),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),

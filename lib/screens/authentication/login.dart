@@ -15,8 +15,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isPasswordVisible = false; // Untuk toggle visibility password
-
+  bool _isPasswordVisible = false; 
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
@@ -24,13 +23,13 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Login"),
-        backgroundColor: const Color(0xFF1A237E), // Deep Indigo
+        backgroundColor: const Color(0xFF1A237E),
         foregroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            // Aksi kembali ke mainpage
+            
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -41,22 +40,21 @@ class _LoginPageState extends State<LoginPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Bagian atas (background dan ikon)
             Container(
               height: 250,
               width: double.infinity,
               decoration: const BoxDecoration(
-                color: Color(0xFF1A237E), // Deep Indigo
+                color: Color(0xFF1A237E), 
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(50),
                   bottomRight: Radius.circular(50),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black26, // Warna shadow
-                    offset: Offset(0, 4),  // Posisi shadow (x, y)
-                    blurRadius: 8,         // Jarak blur shadow
-                    spreadRadius: 2,       // Sebaran shadow
+                    color: Colors.black26, 
+                    offset: Offset(0, 4),  
+                    blurRadius: 8,         
+                    spreadRadius: 2,       
                   ),
                 ],
               ),
@@ -64,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    'assets/images/logobulat.png', // Ganti dengan path logo Anda
+                    'assets/images/logobulat.png', 
                     height: 80,
                   ),
                   const SizedBox(height: 20),
@@ -82,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
 
             const SizedBox(height: 32),
 
-            // Form Login
+           
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
@@ -111,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _passwordController,
-                    obscureText: !_isPasswordVisible, // Kontrol visibilitas
+                    obscureText: !_isPasswordVisible, 
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.lock, color: Colors.orange),
                       hintText: "Input Password",
@@ -139,7 +137,7 @@ class _LoginPageState extends State<LoginPage> {
                       String username = _usernameController.text;
                       String password = _passwordController.text;
 
-                      // Cek kredensial
+                      
                       final response = await request
                           .login("http://127.0.0.1:8000/auth/login_django/", {
                         'username': username,
@@ -188,7 +186,7 @@ class _LoginPageState extends State<LoginPage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A237E), // Deep Indigo
+                      backgroundColor: const Color(0xFF1A237E), 
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
