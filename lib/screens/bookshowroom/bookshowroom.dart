@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:car_xpert/screens/authentication/login.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -128,36 +129,24 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
                       calendarBuilders: CalendarBuilders(
                         defaultBuilder: (context, date, _) {
                           final hasBooking = bookings.any((booking) {
-                            // Assuming booking['visit_date'] is a string like 'yyyy-MM-dd'
                             final visitDateString =
                                 booking['visit_date'] as String;
-                            final visitDate = DateTime.parse(
-                                visitDateString); // Parse it into DateTime
+                            final visitDate = DateTime.parse(visitDateString);
                             final normalizedVisitDate = DateTime(
-                                visitDate.year,
-                                visitDate.month,
-                                visitDate.day); // Normalize it to ignore time
-
-                            final normalizedDate = DateTime(
-                                date.year,
-                                date.month,
-                                date.day); // Normalize the date being compared
-
-                            return normalizedVisitDate.isAtSameMomentAs(
-                                normalizedDate); // Compare the normalized dates
+                                visitDate.year, visitDate.month, visitDate.day);
+                            final normalizedDate =
+                                DateTime(date.year, date.month, date.day);
+                            return normalizedVisitDate
+                                .isAtSameMomentAs(normalizedDate);
                           });
-                          final normalizedDate = DateTime(date.year, date.month,
-                              date.day); // Normalize the date
-                          final normalizedNow = DateTime.now(); // Current time
-                          final normalizedNowDate = DateTime(
-                              normalizedNow.year,
-                              normalizedNow.month,
-                              normalizedNow.day); // Normalize current date
+                          final normalizedDate =
+                              DateTime(date.year, date.month, date.day);
+                          final normalizedNow = DateTime.now();
+                          final normalizedNowDate = DateTime(normalizedNow.year,
+                              normalizedNow.month, normalizedNow.day);
+                          final isPast =
+                              normalizedDate.isBefore(normalizedNowDate);
 
-                          final isPast = normalizedDate
-                              .isBefore(normalizedNowDate); // Compare only date
-
-                          // Use different color for booking dates and past dates
                           Color dateColor = Colors.white;
                           if (hasBooking) {
                             dateColor =
@@ -168,14 +157,12 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
                           }
 
                           return Padding(
-                            padding: const EdgeInsets.all(
-                                4.0), // Spacing between dates
+                            padding: const EdgeInsets.all(4.0),
                             child: Container(
                               decoration: BoxDecoration(
                                 color: dateColor,
                                 shape: BoxShape.rectangle,
-                                borderRadius:
-                                    BorderRadius.circular(8), // Rounded squares
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: Center(
                                 child: Text(
@@ -195,7 +182,7 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
                             padding: const EdgeInsets.all(4.0),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.blue, // Keeping it blue for today
+                                color: Colors.blue,
                                 shape: BoxShape.rectangle,
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -219,6 +206,47 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
                       },
                     ),
                     const SizedBox(height: 16.0),
+                    if (!isBookingFormVisible && !isPast)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              bottom:
+                                  40.0), // Adjust vertical padding for top and bottom space
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                final request = context.read<CookieRequest>();
+                                if (!request.loggedIn) {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LoginPage()),
+                                  );
+                                  return;
+                                }
+                                isBookingFormVisible = true;
+                                currentEditingData = null;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 20.0,
+                                  horizontal:
+                                      40.0), // Increase padding for a bigger button
+                              backgroundColor: Colors.blue,
+                              textStyle: const TextStyle(
+                                  fontSize:
+                                      20), // Increase font size for a bigger button label
+                            ),
+                            child: const Text(
+                              'Book Appointment',
+                              style:
+                                  TextStyle(fontSize: 20, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
                     Text(
                       "Bookings for ${DateFormat('yyyy-MM-dd').format(selectedDate)}",
                       style: const TextStyle(
@@ -242,33 +270,17 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
                         )
                       else
                         const Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Text(
-                            'No bookings found for this date.',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontStyle: FontStyle.italic,
+                          padding: EdgeInsets.all(25.0),
+                          child: Center(
+                            child: Text(
+                              'No bookings found for this date.',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
                           ),
-                        ),
-                      if (!isPast) ...[
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              isBookingFormVisible = true;
-                              currentEditingData = null;
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16.0),
-                            backgroundColor: Colors.blue,
-                          ),
-                          child: const Text(
-                            'Book Appointment',
-                            style: TextStyle(fontSize: 16, color: Colors.white),
-                          ),
-                        ),
-                      ],
+                        )
                     ] else
                       BookingForm(
                         selectedDate: selectedDate,
@@ -423,6 +435,7 @@ class _BookingFormState extends State<BookingForm> {
           children: [
             const Text('Showroom:'),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               items: showrooms
                   .map((showroom) => DropdownMenuItem<String>(
                         value: showroom,
@@ -451,6 +464,7 @@ class _BookingFormState extends State<BookingForm> {
             const SizedBox(height: 16.0),
             const Text('Location:'),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               items: locations
                   .map((location) => DropdownMenuItem<String>(
                         value: location['id'],
@@ -477,6 +491,7 @@ class _BookingFormState extends State<BookingForm> {
             const SizedBox(height: 16.0),
             const Text('Car:'),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               items: cars
                   .map((car) => DropdownMenuItem<String>(
                         value: car['id'],
@@ -538,67 +553,89 @@ class _BookingFormState extends State<BookingForm> {
               maxLines: 3,
             ),
             const SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  final formData = <String, String>{
-                    "showroom_id": selectedLocation.toString(),
-                    "car_id": selectedCarId.toString(),
-                    "visit_date":
-                        widget.selectedDate.toIso8601String().split('T')[0],
-                    "visit_time": timeController.text,
-                    "notes": notesController.text,
-                    if (widget.editingData != null)
-                      "booking_id": widget.editingData!['id'].toString()
-                  };
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      final formData = <String, String>{
+                        "showroom_id": selectedLocation.toString(),
+                        "car_id": selectedCarId.toString(),
+                        "visit_date":
+                            widget.selectedDate.toIso8601String().split('T')[0],
+                        "visit_time": timeController.text,
+                        "notes": notesController.text,
+                        if (widget.editingData != null)
+                          "booking_id": widget.editingData!['id'].toString()
+                      };
 
-                  final String url = widget.editingData == null
-                      ? "http://127.0.0.1:8000/bookshowroom/create_booking_flutter/"
-                      : "http://127.0.0.1:8000/bookshowroom/edit_booking_flutter/";
+                      final String url = widget.editingData == null
+                          ? "http://127.0.0.1:8000/bookshowroom/create_booking_flutter/"
+                          : "http://127.0.0.1:8000/bookshowroom/edit_booking_flutter/";
 
-                  try {
-                    final response = await request.postJson(
-                      url,
-                      jsonEncode(formData),
-                    );
+                      try {
+                        final response = await request.postJson(
+                          url,
+                          jsonEncode(formData),
+                        );
 
-                    if (response["error"] != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Error: ${response['error']}")),
-                      );
+                        if (response["error"] != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text("Error: ${response['error']}")),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Booking successfully saved!")),
+                          );
+                          widget.onCancel();
+                          if (context.mounted) {
+                            final parentState = context.findAncestorStateOfType<
+                                _BookShowroomScreenState>();
+                            if (parentState != null) {
+                              await parentState.fetchBookings();
+                            }
+                          }
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Error: $e")),
+                        );
+                      }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text("Booking successfully saved!")),
+                            content:
+                                Text("Please complete all required fields.")),
                       );
-                      widget.onCancel();
-                      if (context.mounted) {
-                        final parentState = context.findAncestorStateOfType<
-                            _BookShowroomScreenState>();
-                        if (parentState != null) {
-                          await parentState.fetchBookings();
-                        }
-                      }
                     }
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Error: $e")),
-                    );
-                  }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("Please complete all required fields.")),
-                  );
-                }
-              },
-              child: Text(widget.editingData == null
-                  ? 'Submit Booking'
-                  : 'Edit Booking'),
-            ),
-            ElevatedButton(
-              onPressed: widget.onCancel,
-              child: const Text('Cancel'),
+                  },
+                  child: Text(widget.editingData == null
+                      ? 'Submit Booking'
+                      : 'Edit Booking'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30.0,
+                      vertical: 15.0,
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
+                ),
+                const SizedBox(width: 16.0),
+                ElevatedButton(
+                  onPressed: widget.onCancel,
+                  child: const Text('Cancel'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30.0,
+                      vertical: 15.0,
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

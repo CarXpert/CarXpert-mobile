@@ -35,15 +35,17 @@ class _BookingCardState extends State<BookingCard> {
   }
 
   // Helper function to check if visit date is in the past
-  bool _isVisitDateInPast(String visitDate) {
+  bool _isVisitDateInPastOrToday(String visitDate) {
     final parsedDate = DateFormat('yyyy-MM-dd').parse(visitDate);
-    return parsedDate.isBefore(DateTime.now());
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day); // Strip off time
+    return parsedDate.isBefore(today);
   }
 
   @override
   Widget build(BuildContext context) {
     final visitDate = widget.booking['visit_date'];
-    final isPastDate = _isVisitDateInPast(visitDate);
+    final isPastDate = _isVisitDateInPastOrToday(visitDate);
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -65,13 +67,18 @@ class _BookingCardState extends State<BookingCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Showroom Name
-                  Text(
-                    'Showroom: ${widget.booking['showroom']['name']}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                  Flexible(
+                    child: Text(
+                      'Showroom: ${widget.booking['showroom']['name']}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
                     ),
                   ),
+                  const SizedBox(width: 8.0),
                   // Status Container
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -129,8 +136,10 @@ class _BookingCardState extends State<BookingCard> {
               ),
 
               // Information Fields
-              _buildInfoRow('Car:',
-                  '${widget.booking['car']['brand']}, ${widget.booking['car']['car_type']}, ${widget.booking['car']['model']}'),
+              _buildInfoRow(
+                'Car:',
+                '${widget.booking['car']['brand']}, ${widget.booking['car']['car_type']}, ${widget.booking['car']['model']}',
+              ),
               _buildInfoRow('Visit Date:', visitDate),
               _buildInfoRow('Visit Time:', '${widget.booking['visit_time']}'),
 
@@ -236,7 +245,7 @@ class _BookingCardState extends State<BookingCard> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Description in blue outlined rectangle
           Container(
@@ -253,11 +262,14 @@ class _BookingCardState extends State<BookingCard> {
               ),
             ),
           ),
-          // Data Value
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18, // Increased font size for value
+          const SizedBox(width: 8.0),
+          // Right-aligned value
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right, // Align text to the right
+              style: const TextStyle(fontSize: 18),
+              overflow: TextOverflow.ellipsis, // Truncate long text
             ),
           ),
         ],
