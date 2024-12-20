@@ -18,7 +18,6 @@ class _EditNotePageState extends State<EditNotePage> {
   @override
   void initState() {
     super.initState();
-    // Initialize the controller with the current note
     _noteController.text = widget.item.notes ?? '';
   }
 
@@ -36,16 +35,15 @@ class _EditNotePageState extends State<EditNotePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(response['message'] ?? 'Note updated successfully.')),
         );
-        Navigator.pop(context, note); 
+        Navigator.pop(context, note);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update note: ${response['message']}')),
         );
       }
     } catch (e) {
-      print('An error occurred: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('An error occurred: $e'))      
+        SnackBar(content: Text('An error occurred: $e')),
       );
     }
   }
@@ -56,70 +54,145 @@ class _EditNotePageState extends State<EditNotePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Note for ${widget.item.car.brand}'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF000000), Color(0xFF0f0f3d), Color(0xFF1b1b5c)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Edit Note',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Display car image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(5.0),
-              child: Image.asset(
-                'assets/images/${widget.item.car.brand}.png',
-                height: 120,
-                fit: BoxFit.cover,
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Car Card
+              Card(
+                clipBehavior: Clip.antiAlias,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Car Image
+                    Image.asset(
+                      'assets/images/${widget.item.car.brand}.png',
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                    // Car Details
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${widget.item.car.brand} ${widget.item.car.carType}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            widget.item.car.showroom,
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            // Text field for editing the note
-            TextField(
-              controller: _noteController,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                hintText: 'Write your note here...',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white,
+              const SizedBox(height: 24),
+              // Note Section
+              const Text(
+                'Your Notes',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            // Buttons to save or go back
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    await saveNoteToBackend(request);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: TextField(
+                  controller: _noteController,
+                  maxLines: 5,
+                  decoration: InputDecoration(
+                    hintText: 'Write your notes about this car...',
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Action Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await saveNoteToBackend(request);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: const Text(
+                        'Save Note',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
-                  child: const Text('Save Note'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Go back without saving
-                  },
-                  child: const Text('Cancel', style: TextStyle(color: Colors.red)),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 12),
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: BorderSide(color: Colors.grey[300]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                    ),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
