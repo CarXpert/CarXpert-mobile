@@ -45,20 +45,17 @@ class _DetailCarPageState extends State<DetailCarPage> {
       List<CarEntry> cars = carEntryFromJson(carDetailResponse.body);
       CarEntry car = cars.firstWhere((car) => car.pk == widget.carId);
 
-      // Setelah mendapatkan data mobil, fetch showroom data
       final showroomResponse =
           await http.get(Uri.parse('http://127.0.0.1:8000/showrooms_data/'));
       if (showroomResponse.statusCode == 200) {
         final showroomData = jsonDecode(showroomResponse.body);
         List showrooms = showroomData['showrooms'];
 
-        // Mencari showroom yang ID-nya sama dengan showroom pada mobil
         final matchingShowroom = showrooms.firstWhere(
           (s) => s['id'] == car.fields.showroom,
           orElse: () => null,
         );
 
-        // Kembalikan data mobil dan showroom dalam bentuk map
         return {
           'car': car,
           'showroom': matchingShowroom,
@@ -71,7 +68,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
     }
   }
 
-  // Cek apakah mobil sudah ada di wishlist
   Future<void> _checkIfInWishlist() async {
     try {
         final request = context.read<CookieRequest>();
@@ -87,7 +83,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
     }
   }
 
-  // Toggle wishlist: tambah atau hapus item
   Future<void> _toggleWishlist() async {
     try {
       final request = context.read<CookieRequest>();
@@ -132,7 +127,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
             final CarEntry car = data['car'];
             final showroom = data['showroom'];
 
-            // Path gambar berdasarkan brand mobil di aset
             final imagePath =
                 'assets/images/${car.fields.brand.replaceAll(' ', '_')}.png';
 
@@ -141,7 +135,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Gambar Mobil dari aset
                   Image.asset(
                     imagePath,
                     height: 200,
@@ -154,7 +147,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
                   ),
                   const SizedBox(height: 16.0),
 
-                  // Toggle wishlist button
                   IconButton(
                     icon: Icon(
                       isInWishlist ? Icons.favorite : Icons.favorite_border,
@@ -164,7 +156,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
                     onPressed: _toggleWishlist,
                   ),
 
-                  // Informasi Mobil
                   _buildDetailRow('Brand', car.fields.brand),
                   _buildDetailRow('Car Type', car.fields.carType),
                   _buildDetailRow('Model',
@@ -193,7 +184,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
                   _buildDetailRow(
                       'Last Update', _formatDate(car.fields.updatedAt)),
 
-                  // Jika showroom ditemukan, tampilkan detailnya
                   if (showroom != null) ...[
                     _buildDetailRow('Showroom Name', showroom['showroom_name']),
                     _buildDetailRow(
@@ -205,7 +195,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
 
                   const SizedBox(height: 24.0),
 
-                  // Tombol Edit hanya untuk admin
                   if (isAdmin)
                     ElevatedButton(
                       onPressed: () {
@@ -215,7 +204,6 @@ class _DetailCarPageState extends State<DetailCarPage> {
                             builder: (context) => EditCarPage(carId: car.pk),
                           ),
                         ).then((value) {
-                          // Reload data setelah edit jika diperlukan
                           if (value == true) {
                             setState(() {
                               _carDetailWithShowroom =
