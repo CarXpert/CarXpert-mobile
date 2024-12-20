@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:car_xpert/models/comparecars.dart'; // Model comparecars.dart
+import 'package:car_xpert/models/comparecars.dart'; 
 
 class ViewComparisonPage extends StatefulWidget {
   final String car1Brand;
