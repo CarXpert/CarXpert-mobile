@@ -169,10 +169,20 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(builder: (context) => BookShowroomScreen()),
       );
     } else if (index == 2) {
+    final request = context.read<CookieRequest>();
+    if (!request.loggedIn) {
+      // Jika pengguna belum login, arahkan ke LoginPage
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    } else {
+      // Jika pengguna sudah login, arahkan ke WishlistPage
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const WishlistPage()),
       );
+    }
     } else if (index == 3) {
       Navigator.push(
         context,

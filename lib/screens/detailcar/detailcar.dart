@@ -1,3 +1,4 @@
+import 'package:car_xpert/screens/authentication/login.dart';
 import 'package:car_xpert/screens/detailcar/editcar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -96,6 +97,13 @@ class _DetailCarPageState extends State<DetailCarPage> {
   Future<void> _toggleWishlist() async {
     try {
       final request = context.read<CookieRequest>();
+      if (!request.loggedIn) {
+      // Jika pengguna belum login, arahkan ke LoginPage
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+      }
       final response = await request.post(
         'http://127.0.0.1:8000/wishlist/toggle/',
         {'car_id': widget.carId},
