@@ -1,7 +1,12 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:http/http.dart' as http;
+import 'package:table_calendar/table_calendar.dart';
+import 'package:car_xpert/screens/bookshowroom/bookingcard.dart';
 
 class BookShowroomScreen extends StatefulWidget {
   @override
@@ -10,8 +15,8 @@ class BookShowroomScreen extends StatefulWidget {
 
 class _BookShowroomScreenState extends State<BookShowroomScreen> {
   DateTime selectedDate = DateTime.now();
-  List<String> showrooms = [];
   List<Map<String, dynamic>> bookings = [];
+  Map<String, dynamic>? currentEditingData;
   bool isLoading = true;
   bool isBookingFormVisible = false;
 
@@ -44,6 +49,30 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
     }
   }
 
+  Future<void> deleteBooking(String bookingId) async {
+    final url = Uri.parse(
+        'http://127.0.0.1:8000/bookshowroom/delete_booking_flutter/$bookingId/');
+    try {
+      final response = await http.delete(url);
+      if (response.statusCode == 204) {
+        print("Booking deleted successfully.");
+        setState(() {
+          isLoading = true;
+        });
+        await fetchBookings();
+      } else {
+        print("Failed to delete booking: ${response.body}");
+      }
+    } catch (e) {
+      print("Error during delete request: $e");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  // Helper function to get bookings for the selected date
   List<Map<String, dynamic>> getBookingsForSelectedDate() {
     return bookings
         .where((booking) =>
@@ -56,6 +85,15 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
   @override
   Widget build(BuildContext context) {
     final bookingsForSelectedDate = getBookingsForSelectedDate();
+
+    // Check if the selected date is in the past
+    final normalizedSelectedDate =
+        DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+    final normalizedNow = DateTime.now();
+    final normalizedNowDate =
+        DateTime(normalizedNow.year, normalizedNow.month, normalizedNow.day);
+
+    final isPast = normalizedSelectedDate.isBefore(normalizedNowDate);
 
     return Scaffold(
       appBar: AppBar(
@@ -77,78 +115,170 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(
-                      height: 350,
-                      child: CalendarDatePicker(
-                        initialDate: selectedDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                        onDateChanged: (newDate) {
-                          setState(() {
-                            selectedDate = newDate;
-                            isBookingFormVisible = false; // Close the form
-                          });
-                        },
+                    TableCalendar(
+                      focusedDay: selectedDate,
+                      firstDay: DateTime(2000),
+                      lastDay: DateTime(2100),
+                      headerStyle: HeaderStyle(
+                        titleTextStyle: TextStyle(fontSize: 20),
+                        formatButtonVisible: false,
+                        leftChevronIcon: Icon(Icons.arrow_left),
+                        rightChevronIcon: Icon(Icons.arrow_right),
                       ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    Text(
-                      "Bookings for ${selectedDate.toLocal()}",
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    if (bookingsForSelectedDate.isNotEmpty)
-                      ...bookingsForSelectedDate.map((booking) => Padding(
-                            padding: const EdgeInsets.all(8.0),
+                      calendarBuilders: CalendarBuilders(
+                        defaultBuilder: (context, date, _) {
+                          final hasBooking = bookings.any((booking) {
+                            // Assuming booking['visit_date'] is a string like 'yyyy-MM-dd'
+                            final visitDateString =
+                                booking['visit_date'] as String;
+                            final visitDate = DateTime.parse(
+                                visitDateString); // Parse it into DateTime
+                            final normalizedVisitDate = DateTime(
+                                visitDate.year,
+                                visitDate.month,
+                                visitDate.day); // Normalize it to ignore time
+
+                            final normalizedDate = DateTime(
+                                date.year,
+                                date.month,
+                                date.day); // Normalize the date being compared
+
+                            return normalizedVisitDate.isAtSameMomentAs(
+                                normalizedDate); // Compare the normalized dates
+                          });
+                          final normalizedDate = DateTime(date.year, date.month,
+                              date.day); // Normalize the date
+                          final normalizedNow = DateTime.now(); // Current time
+                          final normalizedNowDate = DateTime(
+                              normalizedNow.year,
+                              normalizedNow.month,
+                              normalizedNow.day); // Normalize current date
+
+                          final isPast = normalizedDate
+                              .isBefore(normalizedNowDate); // Compare only date
+
+                          // Use different color for booking dates and past dates
+                          Color dateColor = Colors.white;
+                          if (hasBooking) {
+                            dateColor =
+                                isPast ? Colors.blue[800]! : Colors.blue;
+                          } else if (isPast) {
+                            dateColor =
+                                const Color.fromARGB(255, 215, 220, 225);
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.all(
+                                4.0), // Spacing between dates
                             child: Container(
-                              width: double.infinity,
                               decoration: BoxDecoration(
-                                color: Colors.green[100],
-                                borderRadius: BorderRadius.circular(8.0),
+                                color: dateColor,
+                                shape: BoxShape.rectangle,
+                                borderRadius:
+                                    BorderRadius.circular(8), // Rounded squares
                               ),
-                              child: ListTile(
-                                title: Text(
-                                    'Showroom: ${booking['showroom']['name']}'),
-                                subtitle: Text(
-                                  'Visit Date: ${booking['visit_date']}\nStatus: ${booking['status']}',
+                              child: Center(
+                                child: Text(
+                                  '${date.day}',
+                                  style: TextStyle(
+                                    color: hasBooking || isPast
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
                                 ),
                               ),
                             ),
-                          ))
-                    else
-                      const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text(
-                          'No bookings found for this date.',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontStyle: FontStyle.italic,
+                          );
+                        },
+                        todayBuilder: (context, date, _) {
+                          return Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.blue, // Keeping it blue for today
+                                shape: BoxShape.rectangle,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${date.day}',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      selectedDayPredicate: (day) =>
+                          isSameDay(day, selectedDate),
+                      onDaySelected: (selectedDay, focusedDay) {
+                        setState(() {
+                          selectedDate = selectedDay;
+                          isBookingFormVisible = false;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16.0),
+                    Text(
+                      "Bookings for ${DateFormat('yyyy-MM-dd').format(selectedDate)}",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (!isBookingFormVisible) ...[
+                      if (bookingsForSelectedDate.isNotEmpty)
+                        ...bookingsForSelectedDate.map(
+                          (booking) => BookingCard(
+                            booking: booking,
+                            onEdit: () {
+                              setState(() {
+                                isBookingFormVisible = true;
+                                currentEditingData = booking;
+                              });
+                            },
+                            onDelete: () => deleteBooking(booking['id']),
+                          ),
+                        )
+                      else
+                        const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
+                            'No bookings found for this date.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                            ),
                           ),
                         ),
-                      ),
-                    if (!isBookingFormVisible)
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            isBookingFormVisible = true;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          backgroundColor: Colors.blue,
+                      if (!isPast) ...[
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              isBookingFormVisible = true;
+                              currentEditingData = null;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            backgroundColor: Colors.blue,
+                          ),
+                          child: const Text(
+                            'Book Appointment',
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          ),
                         ),
-                        child: const Text(
-                          'Book Appointment',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                      ),
-                    if (isBookingFormVisible)
+                      ],
+                    ] else
                       BookingForm(
                         selectedDate: selectedDate,
-                        key: ValueKey(selectedDate), // Unique key based on date
+                        key: ValueKey(selectedDate),
+                        isEditing: currentEditingData != null,
+                        editingData: currentEditingData,
                         onCancel: () {
                           setState(() {
                             isBookingFormVisible = false;
+                            currentEditingData = null;
                           });
                         },
                       ),
@@ -162,11 +292,15 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
 
 class BookingForm extends StatefulWidget {
   final VoidCallback onCancel;
-  final DateTime selectedDate; // Pass selectedDate from parent widget
+  final DateTime selectedDate;
+  final bool isEditing;
+  final Map<String, dynamic>? editingData;
 
   const BookingForm({
     required this.onCancel,
     required this.selectedDate,
+    this.isEditing = false,
+    this.editingData,
     super.key,
   });
 
@@ -190,13 +324,32 @@ class _BookingFormState extends State<BookingForm> {
     super.initState();
     fetchShowrooms();
 
-    setState(() {
-      selectedShowroom = null;
-      locations = [];
-      selectedLocation = null;
-      cars = [];
-      selectedCarId = null;
-    });
+    if (widget.isEditing && widget.editingData != null) {
+      // Pre-fill the form for editing
+      final editingData = widget.editingData!;
+      selectedShowroom = editingData['showroom']['name'];
+      selectedLocation = editingData['showroom']['id'];
+      selectedCarId = editingData['car']['id'];
+
+      final visitTimeString = editingData['visit_time']
+          as String; // Assuming visit_time is a String
+      final visitTime = DateFormat('HH:mm:ss').parse(visitTimeString);
+      final formattedTime = DateFormat.jm().format(visitTime);
+
+      timeController.text = formattedTime;
+      notesController.text = editingData['notes'];
+
+      fetchLocations(selectedShowroom!);
+      fetchCars(selectedLocation!);
+    } else {
+      setState(() {
+        selectedShowroom = null;
+        locations = [];
+        selectedLocation = null;
+        cars = [];
+        selectedCarId = null;
+      });
+    }
   }
 
   Future<void> fetchShowrooms() async {
@@ -300,7 +453,7 @@ class _BookingFormState extends State<BookingForm> {
             DropdownButtonFormField<String>(
               items: locations
                   .map((location) => DropdownMenuItem<String>(
-                        value: location['id'], // UUID as String
+                        value: location['id'],
                         child: Text(location['showroom_location']),
                       ))
                   .toList(),
@@ -346,12 +499,11 @@ class _BookingFormState extends State<BookingForm> {
             const SizedBox(height: 16.0),
             const Text('Visit Date:'),
             TextFormField(
-              initialValue: '${widget.selectedDate.toLocal()}'.split(
-                  ' ')[0], // Use the selected date from the parent widget
+              initialValue: '${widget.selectedDate.toLocal()}'.split(' ')[0],
               decoration: const InputDecoration(
                 hintText: 'Selected visit date',
               ),
-              enabled: false, // Disable editing
+              enabled: false,
             ),
             const SizedBox(height: 16.0),
             const Text('Time:'),
@@ -383,7 +535,7 @@ class _BookingFormState extends State<BookingForm> {
               decoration: const InputDecoration(
                 hintText: 'Add any notes',
               ),
-              maxLines: 3, // Allow multiple lines for notes
+              maxLines: 3,
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
@@ -396,33 +548,35 @@ class _BookingFormState extends State<BookingForm> {
                         widget.selectedDate.toIso8601String().split('T')[0],
                     "visit_time": timeController.text,
                     "notes": notesController.text,
+                    if (widget.editingData != null)
+                      "booking_id": widget.editingData!['id'].toString()
                   };
 
-                  // Print the form data
-                  print("Form Data: $formData");
+                  final String url = widget.editingData == null
+                      ? "http://127.0.0.1:8000/bookshowroom/create_booking_flutter/"
+                      : "http://127.0.0.1:8000/bookshowroom/edit_booking_flutter/";
 
                   try {
                     final response = await request.postJson(
-                        "http://127.0.0.1:8000/bookshowroom/create_booking_flutter/",
-                        jsonEncode(formData));
+                      url,
+                      jsonEncode(formData),
+                    );
 
                     if (response["error"] != null) {
-                      // Handle server-side errors
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("Error: ${response['error']}")),
                       );
                     } else {
-                      // Booking successful
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text("Booking successfully created!")),
+                            content: Text("Booking successfully saved!")),
                       );
-                      widget.onCancel(); // Close the form
+                      widget.onCancel();
                       if (context.mounted) {
                         final parentState = context.findAncestorStateOfType<
                             _BookShowroomScreenState>();
                         if (parentState != null) {
-                          await parentState.fetchBookings(); // Refresh bookings
+                          await parentState.fetchBookings();
                         }
                       }
                     }
@@ -438,7 +592,9 @@ class _BookingFormState extends State<BookingForm> {
                   );
                 }
               },
-              child: const Text('Submit Booking'),
+              child: Text(widget.editingData == null
+                  ? 'Submit Booking'
+                  : 'Edit Booking'),
             ),
             ElevatedButton(
               onPressed: widget.onCancel,
