@@ -229,8 +229,8 @@ class _WishlistPageState extends State<WishlistPage> {
                                     children: [
                                       Expanded(
                                         child: ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.push(
+                                            onPressed: () async {  
+                                            final shouldRefresh = await Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) => DetailCarPage(
@@ -238,6 +238,13 @@ class _WishlistPageState extends State<WishlistPage> {
                                                 ),
                                               ),
                                             );
+                                            if (shouldRefresh == true) {
+                                              setState(() {
+                                                wishlist.removeWhere(
+                                                  (wishlistItem) => wishlistItem.car.carId == item.car.carId
+                                                );
+                                              });
+                                            }
                                           },
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: const Color.fromARGB(255, 7, 73, 128),
