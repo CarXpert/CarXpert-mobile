@@ -345,188 +345,199 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
   Widget buildCarGrid(List<CarEntry> cars, bool isLoggedIn) {
-      final filteredCars = getFilteredCars(cars);
+    final filteredCars = getFilteredCars(cars);
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Available Cars',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      hintText: "Search cars by brand or model...",
-                      border: InputBorder.none,
-                      icon: Icon(Icons.search, color: Colors.black54),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  height: 2,
-                  width: double.infinity,
-                  color: Colors.amber.withOpacity(0.5),
-                ),
-                const SizedBox(height: 16),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Container dengan background image
+        Container(
+          padding: const EdgeInsets.all(50.0),
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/viewmobil.png'), // Gambar background
+              fit: BoxFit.cover, // Agar gambar menutupi area
             ),
           ),
-          buildFilterBar(cars),
-          const SizedBox(height: 16),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16.0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16.0,
-                mainAxisSpacing: 16.0,
-                childAspectRatio: 0.7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Available Cars',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-              itemCount: filteredCars.length,
-              itemBuilder: (context, index) {
-                final car = filteredCars[index];
-                final imagePath = 'assets/images/${car.fields.brand.replaceAll(' ', '_')}.png';
-
-                return Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 4),
+              // Search Bar
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200]!.withOpacity(0.8), // Transparansi background search bar
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    hintText: "Search cars by brand or model...",
+                    border: InputBorder.none,
+                    icon: Icon(Icons.search, color: Colors.black54),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                          child: Image.asset(
-                            imagePath,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(
-                                child: Icon(Icons.image_not_supported, size: 50),
-                              );
-                            },
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Divider
+              Container(
+                height: 2,
+                width: double.infinity,
+                color: Colors.amber.withOpacity(0.5),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+        // Filter Bar
+        buildFilterBar(cars),
+        const SizedBox(height: 16),
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.all(16.0),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16.0,
+              mainAxisSpacing: 16.0,
+              childAspectRatio: 0.7,
+            ),
+            itemCount: filteredCars.length,
+            itemBuilder: (context, index) {
+              final car = filteredCars[index];
+              final imagePath = 'assets/images/${car.fields.brand.replaceAll(' ', '_')}.png';
+
+              return Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                        child: Image.asset(
+                          imagePath,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(Icons.image_not_supported, size: 50),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            car.fields.brand,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Model: ${fieldsModelValues.reverse[car.fields.model]}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          Text(
+                            'Year: ${car.fields.year}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                    if (isLoggedIn) ...[
                       Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              car.fields.brand,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DetailCarPage(carId: car.pk),
                               ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 36),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Model: ${fieldsModelValues.reverse[car.fields.model]}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            Text(
-                              'Year: ${car.fields.year}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ],
+                          ),
+                          child: const Text('Detail'),
                         ),
                       ),
-                      if (isLoggedIn) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                          child: ElevatedButton(
+                      if (isAdmin)
+                        Center(
+                          child: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => DetailCarPage(carId: car.pk),
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Hapus Mobil'),
+                                  content: const Text('Yakin ingin menghapus mobil ini?'),
+                                  actions: [
+                                    TextButton(
+                                      child: const Text('Batal'),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: const Text(
+                                        'Hapus',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        _deleteCar(car.pk);
+                                      },
+                                    ),
+                                  ],
                                 ),
                               );
                             },
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 36),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text('Detail'),
                           ),
                         ),
-                        if (isAdmin)
-                          Center(
-                            child: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Hapus Mobil'),
-                                    content: const Text('Yakin ingin menghapus mobil ini?'),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text('Batal'),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                      ),
-                                      TextButton(
-                                        child: const Text(
-                                          'Hapus',
-                                          style: TextStyle(color: Colors.red),
-                                        ),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          _deleteCar(car.pk);
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                      ],
                     ],
-                  ),
-                );
-              },
-            ),
+                  ],
+                ),
+              );
+            },
           ),
-        ],
-      );
-    }
+        ),
+      ],
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
