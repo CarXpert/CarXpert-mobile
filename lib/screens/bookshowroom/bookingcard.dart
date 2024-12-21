@@ -1,8 +1,9 @@
+import 'package:car_xpert/models/booking.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // For date parsing and comparison
 
 class BookingCard extends StatefulWidget {
-  final Map<String, dynamic> booking;
+  final Booking booking;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -21,16 +22,16 @@ class _BookingCardState extends State<BookingCard> {
   bool showLocation = false;
 
   // Helper function to get color based on status
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(Status status) {
     switch (status) {
-      case 'pending':
-        return Colors.orange; // Orange for pending
-      case 'confirmed':
-        return Colors.green; // Green for confirmed
-      case 'canceled':
-        return Colors.red; // Red for canceled
+      case Status.PENDING:
+        return Colors.orange;
+      case Status.CONFIRMED:
+        return Colors.green;
+      case Status.CANCELED:
+        return Colors.red;
       default:
-        return Colors.grey; // Grey for unknown status
+        return Colors.grey; // Fallback color
     }
   }
 
@@ -44,7 +45,7 @@ class _BookingCardState extends State<BookingCard> {
 
   @override
   Widget build(BuildContext context) {
-    final visitDate = widget.booking['visit_date'];
+    final visitDate = widget.booking.visitDate;
     final isPastDate = _isVisitDateInPastOrToday(visitDate);
 
     return Padding(
@@ -69,8 +70,8 @@ class _BookingCardState extends State<BookingCard> {
                   // Showroom Name
                   Flexible(
                     child: Text(
-                      'Showroom: ${widget.booking['showroom']['name']}',
-                      style: TextStyle(
+                      'Showroom: ${widget.booking.showroom.name}',
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -84,11 +85,15 @@ class _BookingCardState extends State<BookingCard> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12.0, vertical: 4.0),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(widget.booking['status']),
+                      color: _getStatusColor(widget.booking.status),
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                     child: Text(
-                      widget.booking['status'].toUpperCase(),
+                      widget.booking.status
+                          .toString()
+                          .split('.')
+                          .last
+                          .toUpperCase(),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -116,7 +121,7 @@ class _BookingCardState extends State<BookingCard> {
                   borderRadius:
                       BorderRadius.circular(12.0), // Make image rounded
                   child: Image.network(
-                    'assets/images/${widget.booking['car']['brand']}.png',
+                    'assets/images/${widget.booking.car.brand}.png',
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
                       return const Icon(
@@ -138,14 +143,14 @@ class _BookingCardState extends State<BookingCard> {
               // Information Fields
               _buildInfoRow(
                 'Car:',
-                '${widget.booking['car']['brand']}, ${widget.booking['car']['car_type']}, ${widget.booking['car']['model']}',
+                '${widget.booking.car.brand}, ${widget.booking.car.carType}, ${widget.booking.car.model}',
               ),
               _buildInfoRow('Visit Date:', visitDate),
-              _buildInfoRow('Visit Time:', '${widget.booking['visit_time']}'),
+              _buildInfoRow('Visit Time:', widget.booking.visitTime),
 
               // Notes (if any)
-              if (widget.booking['notes'] != null &&
-                  widget.booking['notes'].isNotEmpty)
+              if (widget.booking.notes != null &&
+                  widget.booking.notes!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       vertical: 4.0, horizontal: 12.0),
@@ -162,7 +167,7 @@ class _BookingCardState extends State<BookingCard> {
                         ),
                       ),
                       Text(
-                        widget.booking['notes'],
+                        widget.booking.notes ?? '',
                         style: const TextStyle(
                           fontSize: 16,
                         ),
@@ -218,7 +223,7 @@ class _BookingCardState extends State<BookingCard> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
-                        'Location: ${widget.booking['showroom']['location']}',
+                        'Location: ${widget.booking.showroom.location}',
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),

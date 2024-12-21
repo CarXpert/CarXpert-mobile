@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:car_xpert/models/booking.dart';
 import 'package:car_xpert/screens/authentication/login.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -16,8 +17,10 @@ class BookShowroomScreen extends StatefulWidget {
 
 class _BookShowroomScreenState extends State<BookShowroomScreen> {
   DateTime selectedDate = DateTime.now();
-  List<Map<String, dynamic>> bookings = [];
-  Map<String, dynamic>? currentEditingData;
+  // List<Map<String, dynamic>> bookings = [];
+  // Map<String, dynamic>? currentEditingData;
+  List<Booking> bookings = [];
+  Booking? currentEditingData;
   bool isLoading = true;
   bool isBookingFormVisible = false;
 
@@ -36,7 +39,7 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
 
       if (response != null) {
         setState(() {
-          bookings = List<Map<String, dynamic>>.from(response);
+          bookings = bookingFromJson(json.encode(response));
           isLoading = false;
         });
       } else {
@@ -74,12 +77,12 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
   }
 
   // Helper function to get bookings for the selected date
-  List<Map<String, dynamic>> getBookingsForSelectedDate() {
+  List<Booking> getBookingsForSelectedDate() {
     return bookings
         .where((booking) =>
-            DateTime.parse(booking['visit_date']).day == selectedDate.day &&
-            DateTime.parse(booking['visit_date']).month == selectedDate.month &&
-            DateTime.parse(booking['visit_date']).year == selectedDate.year)
+            DateTime.parse(booking.visitDate).day == selectedDate.day &&
+            DateTime.parse(booking.visitDate).month == selectedDate.month &&
+            DateTime.parse(booking.visitDate).year == selectedDate.year)
         .toList();
   }
 
@@ -129,8 +132,7 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
                       calendarBuilders: CalendarBuilders(
                         defaultBuilder: (context, date, _) {
                           final hasBooking = bookings.any((booking) {
-                            final visitDateString =
-                                booking['visit_date'] as String;
+                            final visitDateString = booking.visitDate as String;
                             final visitDate = DateTime.parse(visitDateString);
                             final normalizedVisitDate = DateTime(
                                 visitDate.year, visitDate.month, visitDate.day);
@@ -265,7 +267,7 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
                                 currentEditingData = booking;
                               });
                             },
-                            onDelete: () => deleteBooking(booking['id']),
+                            onDelete: () => deleteBooking(booking.id),
                           ),
                         )
                       else
@@ -306,7 +308,7 @@ class BookingForm extends StatefulWidget {
   final VoidCallback onCancel;
   final DateTime selectedDate;
   final bool isEditing;
-  final Map<String, dynamic>? editingData;
+  final Booking? editingData;
 
   const BookingForm({
     required this.onCancel,
@@ -339,17 +341,17 @@ class _BookingFormState extends State<BookingForm> {
     if (widget.isEditing && widget.editingData != null) {
       // Pre-fill the form for editing
       final editingData = widget.editingData!;
-      selectedShowroom = editingData['showroom']['name'];
-      selectedLocation = editingData['showroom']['id'];
-      selectedCarId = editingData['car']['id'];
+      selectedShowroom = editingData.showroom.name;
+      selectedLocation = editingData.showroom.id;
+      selectedCarId = editingData.car.id;
 
-      final visitTimeString = editingData['visit_time']
-          as String; // Assuming visit_time is a String
+      final visitTimeString =
+          editingData.visitTime as String; // Assuming visit_time is a String
       final visitTime = DateFormat('HH:mm:ss').parse(visitTimeString);
       final formattedTime = DateFormat.jm().format(visitTime);
 
       timeController.text = formattedTime;
-      notesController.text = editingData['notes'];
+      notesController.text = editingData.notes!;
 
       fetchLocations(selectedShowroom!);
       fetchCars(selectedLocation!);
@@ -567,7 +569,7 @@ class _BookingFormState extends State<BookingForm> {
                         "visit_time": timeController.text,
                         "notes": notesController.text,
                         if (widget.editingData != null)
-                          "booking_id": widget.editingData!['id'].toString()
+                          "booking_id": widget.editingData!.id.toString()
                       };
 
                       final String url = widget.editingData == null
