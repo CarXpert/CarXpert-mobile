@@ -558,7 +558,8 @@ class _BookingFormState extends State<BookingForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
+                Expanded(
+                    child: ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       final formData = <String, String>{
@@ -624,9 +625,10 @@ class _BookingFormState extends State<BookingForm> {
                     ),
                     textStyle: const TextStyle(fontSize: 16),
                   ),
-                ),
+                )),
                 const SizedBox(width: 16.0),
-                ElevatedButton(
+                Expanded(
+                    child: ElevatedButton(
                   onPressed: widget.onCancel,
                   child: const Text('Cancel'),
                   style: ElevatedButton.styleFrom(
@@ -636,7 +638,7 @@ class _BookingFormState extends State<BookingForm> {
                     ),
                     textStyle: const TextStyle(fontSize: 16),
                   ),
-                ),
+                ))
               ],
             ),
           ],
