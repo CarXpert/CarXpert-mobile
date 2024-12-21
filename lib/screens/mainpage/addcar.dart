@@ -101,7 +101,7 @@ class _AddCarPageState extends State<AddCarPage> {
 
       final request = context.read<CookieRequest>();
       // Pastikan kita mengirim showroom_name, showroom_location, showroom_regency
-      final response = await request.post("http://127.0.0.1:8000/add_car/", {
+      final response = await request.post("https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/add_car/", {
         'showroom_name': _showroomNameController.text,
         'showroom_location': _showroomLocationController.text,
         'showroom_regency': _showroomRegencyController.text,

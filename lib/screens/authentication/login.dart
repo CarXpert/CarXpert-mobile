@@ -139,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
 
                       
                       final response = await request
-                          .login("http://127.0.0.1:8000/auth/login_django/", {
+                          .login("https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/auth/login_django/", {
                         'username': username,
                         'password': password,
                       });

@@ -24,7 +24,7 @@ class _WishlistPageState extends State<WishlistPage> {
   }
 
   Future<List<WishlistItem>> fetchWishlist(CookieRequest request, String sortOrder) async {
-    final response = await request.get('http://127.0.0.1:8000/wishlist/json/');
+    final response = await request.get('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/wishlist/json/');
     var data = response;
 
     List<WishlistItem> listWishlist = [];
@@ -45,7 +45,7 @@ class _WishlistPageState extends State<WishlistPage> {
   Future<void> deleteWishlistItem(String itemId, CookieRequest request) async {
     try {
       final response = await request.post(
-        'http://127.0.0.1:8000/wishlist/remove/',
+        'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/wishlist/remove/',
         {'car_id': itemId},
       );
 

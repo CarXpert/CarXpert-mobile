@@ -31,7 +31,7 @@ class _EditCarPageState extends State<EditCarPage> {
   bool _isLoading = false;
 
   Future<CarEntry> fetchCarDetail() async {
-    final response = await http.get(Uri.parse('http://127.0.0.1:8000/main/json/'));
+    final response = await http.get(Uri.parse('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/main/json/'));
     if (response.statusCode == 200) {
       List<CarEntry> cars = carEntryFromJson(response.body);
       return cars.firstWhere((car) => car.pk == widget.carId);
@@ -81,7 +81,7 @@ class _EditCarPageState extends State<EditCarPage> {
       _isLoading = true;
     });
 
-    final url = Uri.parse('http://127.0.0.1:8000/car/edit/${widget.carId}/');
+    final url = Uri.parse('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/car/edit/${widget.carId}/');
 
     // Untuk fuel_type dan model, jika di backend adalah pilihan enumerasi,
     // pastikan untuk mengirimkan nilai yang sesuai (misalnya string asli yang digunakan di backend, bukan label).

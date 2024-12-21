@@ -47,14 +47,14 @@ class _DetailCarPageState extends State<DetailCarPage> {
   Future<Map<String, dynamic>> fetchCarDetailWithShowroom() async {
     // Fetch car detail
     final carDetailResponse =
-        await http.get(Uri.parse('http://127.0.0.1:8000/main/json/'));
+        await http.get(Uri.parse('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/main/json/'));
 
     if (carDetailResponse.statusCode == 200) {
       List<CarEntry> cars = carEntryFromJson(carDetailResponse.body);
       CarEntry car = cars.firstWhere((car) => car.pk == widget.carId);
 
       final showroomResponse =
-          await http.get(Uri.parse('http://127.0.0.1:8000/showrooms_data/'));
+          await http.get(Uri.parse('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/showrooms_data/'));
       if (showroomResponse.statusCode == 200) {
         final showroomData = jsonDecode(showroomResponse.body);
         List showrooms = showroomData['showrooms'];
@@ -80,7 +80,7 @@ class _DetailCarPageState extends State<DetailCarPage> {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.post(
-        'http://127.0.0.1:8000/wishlist/check/',
+        'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/wishlist/check/',
         {'car_id': widget.carId},
       );
 
@@ -105,7 +105,7 @@ class _DetailCarPageState extends State<DetailCarPage> {
       );
       }
       final response = await request.post(
-        'http://127.0.0.1:8000/wishlist/toggle/',
+        'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/wishlist/toggle/',
         {'car_id': widget.carId},
       );
 

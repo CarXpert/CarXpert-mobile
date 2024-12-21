@@ -117,7 +117,7 @@ class _EditArticlePageState extends State<EditArticlePage> {
         height: 200,
         width: double.infinity,
         child: Image.network(
-          'http://127.0.0.1:8000/media/$_selectedImage',
+          'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/media/$_selectedImage',
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             return Container(
@@ -140,7 +140,7 @@ class _EditArticlePageState extends State<EditArticlePage> {
     if (_formKey.currentState!.validate()) {
       try {
         final articleId = widget.article['pk'];
-        var uri = Uri.parse('http://127.0.0.1:8000/news/api/$articleId/edit/');
+        var uri = Uri.parse('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/news/api/$articleId/edit/');
         var request = http.MultipartRequest('POST', uri);
 
         request.fields['title'] = _titleController.text;

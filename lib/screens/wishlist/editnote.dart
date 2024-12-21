@@ -27,7 +27,7 @@ class _EditNotePageState extends State<EditNotePage> {
     
     try {
       final response = await request.post(
-        'http://127.0.0.1:8000/wishlist/edit-note-api/',
+        'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/wishlist/edit-note-api/',
         {'car_id': carId, 'note': note},
       );
 

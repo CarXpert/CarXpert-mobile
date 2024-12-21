@@ -65,7 +65,7 @@ class _AddArticlePageState extends State<AddArticlePage> {
   Future<void> _submitArticle() async {
     if (_formKey.currentState!.validate()) {
       try {
-        var uri = Uri.parse('http://127.0.0.1:8000/news/api/add/');
+        var uri = Uri.parse('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/news/api/add/');
         var request = http.MultipartRequest('POST', uri);
         request.fields['title'] = _titleController.text;
         request.fields['author'] = _authorController.text;
@@ -122,7 +122,7 @@ class _AddArticlePageState extends State<AddArticlePage> {
               final mediaPath = imageUrl.split('/media/')[1];
              
               // Create a constant base URL string
-              const baseUrl = 'http://127.0.0.1:8000';
+              const baseUrl = 'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id';
              
               // Combine into final URL
               final cleanImageUrl = '$baseUrl/media/$mediaPath';

@@ -36,7 +36,7 @@ class _ViewComparisonPageState extends State<ViewComparisonPage> {
   Future<void> fetchCars() async {
     try {
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/comparecars/get-cars/'),
+        Uri.parse('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/comparecars/get-cars/'),
       );
 
       if (response.statusCode == 200) {

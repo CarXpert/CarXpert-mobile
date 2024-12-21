@@ -26,7 +26,7 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.get(
-        "http://127.0.0.1:8000/comparecars/list-comparisons/json/?sort=$sortOrder",
+        "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/comparecars/list-comparisons/json/?sort=$sortOrder",
       );
 
       if (response != null) {
@@ -54,7 +54,7 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.post(
-        "http://127.0.0.1:8000/comparecars/compare/$id/",
+        "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/comparecars/compare/$id/",
         jsonEncode({'method': 'DELETE'}),
       );
 
@@ -83,7 +83,7 @@ class _ViewAllComparisonPageState extends State<ViewAllComparisonPage> {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.post(
-        "http://127.0.0.1:8000/comparecars/compare/$id/",
+        "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/comparecars/compare/$id/",
         jsonEncode({'method': 'PUT', 'title': newTitle}),
       );
 

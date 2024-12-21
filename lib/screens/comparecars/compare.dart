@@ -25,7 +25,7 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
   }
 
   Future<void> fetchCars() async {
-    String url = "http://127.0.0.1:8000/comparecars/get-cars/";
+    String url = "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/comparecars/get-cars/";
     try {
       final response = await http.get(Uri.parse(url)).timeout(
         const Duration(seconds: 10),
@@ -86,7 +86,7 @@ class _CarComparisonPageState extends State<CarComparisonPage> {
 
     try {
       final response = await request.post(
-        "http://127.0.0.1:8000/comparecars/compare/",
+        "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/comparecars/compare/",
         bodyData,
       );
 

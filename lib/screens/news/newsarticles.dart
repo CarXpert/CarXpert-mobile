@@ -36,7 +36,7 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
 
   Future<void> fetchArticles() async {
     try {
-      final response = await http.get(Uri.parse('http://127.0.0.1:8000/news/json/'));
+      final response = await http.get(Uri.parse('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/news/json/'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as List<dynamic>;
         setState(() {
@@ -58,7 +58,7 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
   Future<void> deleteArticle(int articleId) async {
     try {
       final response = await http.delete(
-        Uri.parse('http://127.0.0.1:8000/news/api/$articleId/delete/'),
+        Uri.parse('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/news/api/$articleId/delete/'),
       );
 
       if (response.statusCode == 200) {
@@ -266,7 +266,7 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                                     aspectRatio: 16 / 9,
                                     child: article['image'] != null
                                         ? Image.network(
-                                            'http://127.0.0.1:8000/media/${article['image']}',
+                                            'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/media/${article['image']}',
                                             fit: BoxFit.cover,
                                             errorBuilder: (context, error, stackTrace) {
                                               print('Error loading image: $error');

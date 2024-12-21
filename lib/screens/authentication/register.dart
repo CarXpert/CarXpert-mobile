@@ -175,7 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       }
 
                       final response = await request.postJson(
-                        "http://127.0.0.1:8000/auth/register_django/",
+                        "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/auth/register_django/",
                         jsonEncode({
                           "username": username,
                           "password1": password1,

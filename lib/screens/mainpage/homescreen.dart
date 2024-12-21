@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = ''; 
 
   Future<List<CarEntry>> fetchCarList() async {
-    final response = await http.get(Uri.parse('http://127.0.0.1:8000/main/json/'));
+    final response = await http.get(Uri.parse('https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/main/json/'));
 
     if (response.statusCode == 200) {
       return carEntryFromJson(response.body);
@@ -108,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _logout() async {
     final request = context.read<CookieRequest>();
-    final response = await request.logout("http://127.0.0.1:8000/auth/logout_django/");
+    final response = await request.logout("https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/auth/logout_django/");
 
     if (response['status'] == 'success') {
       final prefs = await SharedPreferences.getInstance();
@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _deleteCar(String carId) async {
     final request = context.read<CookieRequest>();
-    final url = 'http://127.0.0.1:8000/main/delete_car/$carId/';
+    final url = 'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/main/delete_car/$carId/';
 
     try {
       final response = await request.post(

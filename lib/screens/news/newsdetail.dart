@@ -29,7 +29,7 @@ class NewsDetailPage extends StatelessWidget {
                     height: mediaQuery.size.height * 0.4,
                     child: fields['image'] != null
                         ? Image.network(
-                            'http://127.0.0.1:8000/media/${fields['image']}',
+                            'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/media/${fields['image']}',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               print('Error loading image: $error');
