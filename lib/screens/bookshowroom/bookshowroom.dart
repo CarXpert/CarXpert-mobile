@@ -17,8 +17,6 @@ class BookShowroomScreen extends StatefulWidget {
 
 class _BookShowroomScreenState extends State<BookShowroomScreen> {
   DateTime selectedDate = DateTime.now();
-  // List<Map<String, dynamic>> bookings = [];
-  // Map<String, dynamic>? currentEditingData;
   List<Booking> bookings = [];
   Booking? currentEditingData;
   bool isLoading = true;
@@ -34,7 +32,7 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.get(
-        "http://127.0.0.1:8000/bookshowroom/json/",
+        "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/bookshowroom/json/",
       );
 
       if (response != null) {
@@ -55,7 +53,7 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
 
   Future<void> deleteBooking(String bookingId) async {
     final url = Uri.parse(
-        'http://127.0.0.1:8000/bookshowroom/delete_booking_flutter/$bookingId/');
+        'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/bookshowroom/delete_booking_flutter/$bookingId/');
     try {
       final response = await http.delete(url);
       if (response.statusCode == 204) {
@@ -90,7 +88,6 @@ class _BookShowroomScreenState extends State<BookShowroomScreen> {
   Widget build(BuildContext context) {
     final bookingsForSelectedDate = getBookingsForSelectedDate();
 
-    // Check if the selected date is in the past
     final normalizedSelectedDate =
         DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
     final normalizedNow = DateTime.now();
@@ -339,14 +336,12 @@ class _BookingFormState extends State<BookingForm> {
     fetchShowrooms();
 
     if (widget.isEditing && widget.editingData != null) {
-      // Pre-fill the form for editing
       final editingData = widget.editingData!;
       selectedShowroom = editingData.showroom.name;
       selectedLocation = editingData.showroom.id;
       selectedCarId = editingData.car.id;
 
-      final visitTimeString =
-          editingData.visitTime as String; // Assuming visit_time is a String
+      final visitTimeString = editingData.visitTime as String;
       final visitTime = DateFormat('HH:mm:ss').parse(visitTimeString);
       final formattedTime = DateFormat.jm().format(visitTime);
 
@@ -370,7 +365,7 @@ class _BookingFormState extends State<BookingForm> {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.get(
-        "http://127.0.0.1:8000/bookshowroom/get-showrooms/",
+        "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/bookshowroom/get-showrooms/",
       );
 
       if (response != null) {
@@ -391,7 +386,7 @@ class _BookingFormState extends State<BookingForm> {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.get(
-        "http://127.0.0.1:8000/bookshowroom/get_locations/$showroomName/",
+        "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/bookshowroom/get_locations/$showroomName/",
       );
 
       if (response != null) {
@@ -410,7 +405,7 @@ class _BookingFormState extends State<BookingForm> {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.get(
-        "http://127.0.0.1:8000/bookshowroom/get_cars/$locationId/",
+        "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/bookshowroom/get_cars/$locationId/",
       );
 
       if (response != null) {
@@ -574,8 +569,8 @@ class _BookingFormState extends State<BookingForm> {
                       };
 
                       final String url = widget.editingData == null
-                          ? "http://127.0.0.1:8000/bookshowroom/create_booking_flutter/"
-                          : "http://127.0.0.1:8000/bookshowroom/edit_booking_flutter/";
+                          ? "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/bookshowroom/create_booking_flutter/"
+                          : "https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/bookshowroom/edit_booking_flutter/";
 
                       try {
                         final response = await request.postJson(

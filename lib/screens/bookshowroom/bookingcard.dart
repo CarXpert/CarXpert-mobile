@@ -1,6 +1,6 @@
 import 'package:car_xpert/models/booking.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // For date parsing and comparison
+import 'package:intl/intl.dart'; 
 
 class BookingCard extends StatefulWidget {
   final Booking booking;
@@ -21,7 +21,7 @@ class BookingCard extends StatefulWidget {
 class _BookingCardState extends State<BookingCard> {
   bool showLocation = false;
 
-  // Helper function to get color based on status
+ 
   Color _getStatusColor(Status status) {
     switch (status) {
       case Status.PENDING:
@@ -31,15 +31,15 @@ class _BookingCardState extends State<BookingCard> {
       case Status.CANCELED:
         return Colors.red;
       default:
-        return Colors.grey; // Fallback color
+        return Colors.grey; 
     }
   }
 
-  // Helper function to check if visit date is in the past
+  
   bool _isVisitDateInPastOrToday(String visitDate) {
     final parsedDate = DateFormat('yyyy-MM-dd').parse(visitDate);
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day); // Strip off time
+    final today = DateTime(now.year, now.month, now.day); 
     return parsedDate.isBefore(today);
   }
 
@@ -53,21 +53,21 @@ class _BookingCardState extends State<BookingCard> {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.white, // Set background to white
+          color: Colors.white, 
           borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.grey[300]!), // Optional border
+          border: Border.all(color: Colors.grey[300]!), 
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Showroom Name and Status in a Row
+           
             Padding(
               padding:
                   const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Showroom Name
+                 
                   Flexible(
                     child: Text(
                       'Showroom: ${widget.booking.showroom.name}',
@@ -80,7 +80,7 @@ class _BookingCardState extends State<BookingCard> {
                     ),
                   ),
                   const SizedBox(width: 8.0),
-                  // Status Container
+                  
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12.0, vertical: 4.0),
@@ -104,7 +104,7 @@ class _BookingCardState extends State<BookingCard> {
               ),
             ),
 
-            // Black line between Showroom Name and Car Image
+           
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 12.0),
               child: Divider(
@@ -114,12 +114,12 @@ class _BookingCardState extends State<BookingCard> {
             ),
 
             if (!showLocation) ...[
-              // Car Image with rounded corners
+           
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: ClipRRect(
                   borderRadius:
-                      BorderRadius.circular(12.0), // Make image rounded
+                      BorderRadius.circular(12.0), 
                   child: Image.network(
                     'assets/images/${widget.booking.car.brand}.png',
                     fit: BoxFit.contain,
@@ -140,7 +140,7 @@ class _BookingCardState extends State<BookingCard> {
                 ),
               ),
 
-              // Information Fields
+         
               _buildInfoRow(
                 'Car:',
                 '${widget.booking.car.brand}, ${widget.booking.car.carType}, ${widget.booking.car.model}',
@@ -148,7 +148,7 @@ class _BookingCardState extends State<BookingCard> {
               _buildInfoRow('Visit Date:', visitDate),
               _buildInfoRow('Visit Time:', widget.booking.visitTime),
 
-              // Notes (if any)
+             
               if (widget.booking.notes != null &&
                   widget.booking.notes!.isNotEmpty)
                 Padding(
@@ -163,7 +163,7 @@ class _BookingCardState extends State<BookingCard> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue, // Blue text for description
+                          color: Colors.blue, 
                         ),
                       ),
                       Text(
@@ -176,7 +176,7 @@ class _BookingCardState extends State<BookingCard> {
                   ),
                 ),
 
-              // Action buttons (Edit, Delete, Location)
+            
               if (!isPastDate)
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -204,7 +204,7 @@ class _BookingCardState extends State<BookingCard> {
                   ),
                 ),
             ] else ...[
-              // Location View
+           
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: Column(
@@ -235,7 +235,7 @@ class _BookingCardState extends State<BookingCard> {
                       },
                       child: const Text('Back'),
                     ),
-                    const SizedBox(height: 16.0), // Added space here
+                    const SizedBox(height: 16.0), 
                   ],
                 ),
               ),
@@ -252,7 +252,7 @@ class _BookingCardState extends State<BookingCard> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Description in blue outlined rectangle
+         
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
             decoration: BoxDecoration(
@@ -262,19 +262,19 @@ class _BookingCardState extends State<BookingCard> {
             child: Text(
               description,
               style: const TextStyle(
-                fontSize: 18, // Increased font size for description
-                color: Colors.blue, // Blue text for description
+                fontSize: 18, 
+                color: Colors.blue, 
               ),
             ),
           ),
           const SizedBox(width: 8.0),
-          // Right-aligned value
+          
           Expanded(
             child: Text(
               value,
-              textAlign: TextAlign.right, // Align text to the right
+              textAlign: TextAlign.right, 
               style: const TextStyle(fontSize: 18),
-              overflow: TextOverflow.ellipsis, // Truncate long text
+              overflow: TextOverflow.ellipsis, 
             ),
           ),
         ],
