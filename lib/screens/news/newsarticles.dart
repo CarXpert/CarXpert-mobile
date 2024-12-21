@@ -92,6 +92,10 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen width to determine grid layout
+    final screenWidth = MediaQuery.of(context).size.width;
+    final crossAxisCount = screenWidth > 900 ? 3 : (screenWidth > 600 ? 2 : 1);
+    
     return Scaffold(
       appBar: AppBar(
         title: Text('Automotive News', style: TextStyle(color: Colors.black)),
@@ -122,7 +126,6 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
         color: Colors.white,
         child: Column(
           children: [
-            // New Title Section with yellow underline
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(vertical: 20),
@@ -148,60 +151,81 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
             ),
             Padding(
               padding: const EdgeInsets.all(10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        labelText: 'Author',
-                        labelStyle: TextStyle(color: Colors.black87),
-                        filled: true,
-                        fillColor: Colors.grey[200],
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      SizedBox(
+                        width: constraints.maxWidth > 600 ? 
+                          (constraints.maxWidth - 10) / 2 : 
+                          constraints.maxWidth,
+                        child: DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            labelText: 'Author',
+                            labelStyle: TextStyle(color: Colors.black87),
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          value: selectedAuthor,
+                          isExpanded: true,
+                          dropdownColor: Colors.grey[200],
+                          items: authors.map((author) {
+                            return DropdownMenuItem(
+                              value: author,
+                              child: Text(
+                                author,
+                                style: TextStyle(color: Colors.black87),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedAuthor = value;
+                              filterArticles();
+                            });
+                          },
+                        ),
                       ),
-                      value: selectedAuthor,
-                      dropdownColor: Colors.grey[200],
-                      items: authors.map((author) {
-                        return DropdownMenuItem(
-                          value: author,
-                          child: Text(author, style: TextStyle(color: Colors.black87)),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedAuthor = value;
-                          filterArticles();
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        labelText: 'Category',
-                        labelStyle: TextStyle(color: Colors.black87),
-                        filled: true,
-                        fillColor: Colors.grey[200],
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      SizedBox(
+                        width: constraints.maxWidth > 600 ? 
+                          (constraints.maxWidth - 10) / 2 : 
+                          constraints.maxWidth,
+                        child: DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            labelText: 'Category',
+                            labelStyle: TextStyle(color: Colors.black87),
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          value: selectedCategory,
+                          isExpanded: true,
+                          dropdownColor: Colors.grey[200],
+                          items: categories.map((category) {
+                            return DropdownMenuItem(
+                              value: category,
+                              child: Text(
+                                category,
+                                style: TextStyle(color: Colors.black87),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedCategory = value;
+                              filterArticles();
+                            });
+                          },
+                        ),
                       ),
-                      value: selectedCategory,
-                      dropdownColor: Colors.grey[200],
-                      items: categories.map((category) {
-                        return DropdownMenuItem(
-                          value: category,
-                          child: Text(category, style: TextStyle(color: Colors.black87)),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedCategory = value;
-                          filterArticles();
-                        });
-                      },
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
             Expanded(
@@ -209,10 +233,10 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                   ? GridView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                        crossAxisCount: crossAxisCount,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
-                        childAspectRatio: isAdmin ? 0.65 : 0.75,
+                        childAspectRatio: isAdmin ? 0.75 : 0.85,
                       ),
                       itemCount: filteredArticles.length,
                       itemBuilder: (context, index) {
@@ -238,9 +262,8 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                                  child: SizedBox(
-                                    height: 120,
-                                    width: double.infinity,
+                                  child: AspectRatio(
+                                    aspectRatio: 16 / 9,
                                     child: article['image'] != null
                                         ? Image.network(
                                             'http://127.0.0.1:8000/media/${article['image']}',
@@ -268,31 +291,28 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                                         Text(
                                           article['title'],
                                           style: TextStyle(
-                                            fontSize: 20,
+                                            fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black87,
-                                            height: 1.2,
                                           ),
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                         ),
-                                        SizedBox(height: 8),
+                                        SizedBox(height: 4),
                                         Text(
                                           '${article['author']} | ${article['category']}',
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: Colors.grey[700],
-                                            height: 1.5,
                                           ),
                                         ),
-                                        SizedBox(height: 8),
-                                        Expanded(
+                                        SizedBox(height: 4),
+                                        Flexible(
                                           child: Text(
                                             article['content'],
                                             style: TextStyle(
                                               fontSize: 13,
                                               color: Colors.grey[600],
-                                              height: 1.4,
                                             ),
                                             maxLines: 3,
                                             overflow: TextOverflow.ellipsis,
@@ -303,10 +323,10 @@ class _NewsArticleListPageState extends State<NewsArticleListPage> {
                                   ),
                                 ),
                                 if (isAdmin)
-                                  Padding(
+                                  Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
                                         IconButton(
                                           icon: Icon(Icons.edit, color: Colors.blue),
