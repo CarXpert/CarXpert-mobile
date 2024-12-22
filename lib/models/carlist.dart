@@ -49,12 +49,12 @@ class Fields {
     String licensePlate;
     int priceCash;
     int priceCredit;
-    int pkbValue;
-    int pkbBase;
+    double pkbValue;
+    double pkbBase;
     DateTime stnkDate;
     DateTime levyDate;
-    int swdkllj;
-    int totalLevy;
+    double swdkllj;
+    double totalLevy;
     DateTime createdAt;
     DateTime updatedAt;
 
