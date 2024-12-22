@@ -102,4 +102,4 @@ flutter:
 flutter_icons:
   android: true  # Menghasilkan ikon untuk Android
   ios: true      # Menghasilkan ikon untuk iOS
-  image_path: "assets/image/logobulat.png" # Path ke gambar logo Anda
+  image_path: "assets/images/logobulat.png" # Path ke gambar logo Anda
