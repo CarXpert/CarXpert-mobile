@@ -1,3 +1,4 @@
+// detailcar.dart
 import 'package:car_xpert/screens/authentication/login.dart';
 import 'package:car_xpert/screens/detailcar/editcar.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,9 @@ class _DetailCarPageState extends State<DetailCarPage> {
     symbol: 'Rp. ',
     decimalDigits: 0,
   );
+
+  // Tambahkan variabel untuk melacak apakah data telah diperbarui
+  bool _dataUpdated = false;
 
   @override
   void initState() {
@@ -98,11 +102,12 @@ class _DetailCarPageState extends State<DetailCarPage> {
     try {
       final request = context.read<CookieRequest>();
       if (!request.loggedIn) {
-      // Jika pengguna belum login, arahkan ke LoginPage
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
+        // Jika pengguna belum login, arahkan ke LoginPage
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
+        return; // Menghentikan eksekusi lebih lanjut
       }
       final response = await request.post(
         'https://khoirul-azmi-carxpert.pbp.cs.ui.ac.id/wishlist/toggle/',
@@ -154,10 +159,10 @@ class _DetailCarPageState extends State<DetailCarPage> {
           ),
         ],
         backgroundColor: Colors.white, // Ubah warna AppBar jika perlu
-        iconTheme: IconThemeData(
+        iconTheme: const IconThemeData(
           color: Colors.black, // Ubah warna ikon AppBar lainnya
         ),
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           color: Colors.black, // Ubah warna teks judul
           fontSize: 20,
           fontWeight: FontWeight.bold,
@@ -184,152 +189,164 @@ class _DetailCarPageState extends State<DetailCarPage> {
             final imagePath =
                 'assets/images/${car.fields.brand.replaceAll(' ', '_')}.png';
 
-            return ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                // Gambar Mobil
-                Card(
-                  elevation: 4.0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      imagePath,
-                      height: imageHeight,
-                      width: imageWidth,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: imageHeight,
-                          color: Colors.grey[200],
-                          child: const Center(
-                              child:
-                                  Icon(Icons.image_not_supported, size: 100)),
-                        );
+            return WillPopScope(
+              onWillPop: () async {
+                // Jika data telah diperbarui, kembalikan nilai true ke HomeScreen
+                if (_dataUpdated) {
+                  Navigator.pop(context, true);
+                }
+                return true;
+              },
+              child: ListView(
+                padding: const EdgeInsets.all(16.0),
+                children: [
+                  // Gambar Mobil
+                  Card(
+                    elevation: 4.0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.asset(
+                        imagePath,
+                        height: imageHeight,
+                        width: imageWidth,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: imageHeight,
+                            color: Colors.grey[200],
+                            child: const Center(
+                                child:
+                                    Icon(Icons.image_not_supported, size: 100)),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+
+                  // Detail Mobil
+                  Card(
+                    elevation: 2.0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          _buildDetailRow('Brand', car.fields.brand),
+                          _buildDetailRow('Car Type', car.fields.carType),
+                          _buildDetailRow('Model',
+                              fieldsModelValues.reverse[car.fields.model]!),
+                          _buildDetailRow('Color', car.fields.color),
+                          _buildDetailRow('Year', car.fields.year.toString()),
+                          _buildDetailRow('Fuel Type',
+                              fuelTypeValues.reverse[car.fields.fuelType]!),
+                          _buildDetailRow('Cylinder Size',
+                              _formatNumber(car.fields.cylinderSize) + ' cc'),
+                          _buildDetailRow('Cylinder Total',
+                              _formatNumber(car.fields.cylinderTotal)),
+                          _buildDetailRow(
+                              'Turbo', car.fields.turbo ? 'Yes' : 'No'),
+                          _buildDetailRow('Mileage',
+                              _formatNumber(car.fields.mileage) + ' km'),
+                          _buildDetailRow('STNK Expiry',
+                              _formatDate(car.fields.stnkDate)),
+                          _buildDetailRow(
+                              'Levy Expiry', _formatDate(car.fields.levyDate)),
+                          _buildDetailRow(
+                              'License Plate', car.fields.licensePlate),
+                          _buildDetailRow('Price Cash',
+                              currencyFormat.format(car.fields.priceCash)),
+                          _buildDetailRow('Price Credit',
+                              currencyFormat.format(car.fields.priceCredit)),
+                          _buildDetailRow(
+                              'Created at', _formatDate(car.fields.createdAt)),
+                          _buildDetailRow(
+                              'Last Update', _formatDate(car.fields.updatedAt)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+
+                  // Detail Showroom
+                  showroom != null
+                      ? Card(
+                          elevation: 2.0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                const Text(
+                                  'Showroom Details',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const Divider(),
+                                _buildDetailRow(
+                                    'Showroom Name', showroom['showroom_name']),
+                                _buildDetailRow('Location',
+                                    showroom['showroom_location']),
+                                _buildDetailRow(
+                                    'Regency', showroom['showroom_regency']),
+                              ],
+                            ),
+                          ),
+                        )
+                      : const Card(
+                          elevation: 2.0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10))),
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(
+                              'Showroom not found',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ),
+                  const SizedBox(height: 24.0),
+
+                  // Tombol Edit untuk Admin
+                  if (isAdmin)
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditCarPage(carId: car.pk),
+                          ),
+                        ).then((value) {
+                          if (value == true) {
+                            // Jika EditCarPage mengembalikan true, perbarui data di DetailCarPage
+                            setState(() {
+                              _carDetailWithShowroom =
+                                  fetchCarDetailWithShowroom();
+                              _dataUpdated = true; // Tandai bahwa data telah diperbarui
+                            });
+                          }
+                        });
                       },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-
-                // Detail Mobil
-                Card(
-                  elevation: 2.0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        _buildDetailRow('Brand', car.fields.brand),
-                        _buildDetailRow('Car Type', car.fields.carType),
-                        _buildDetailRow('Model',
-                            fieldsModelValues.reverse[car.fields.model]!),
-                        _buildDetailRow('Color', car.fields.color),
-                        _buildDetailRow('Year', car.fields.year.toString()),
-                        _buildDetailRow('Fuel Type',
-                            fuelTypeValues.reverse[car.fields.fuelType]!),
-                        _buildDetailRow('Cylinder Size',
-                            _formatNumber(car.fields.cylinderSize) + ' cc'),
-                        _buildDetailRow('Cylinder Total',
-                            _formatNumber(car.fields.cylinderTotal)),
-                        _buildDetailRow(
-                            'Turbo', car.fields.turbo ? 'Yes' : 'No'),
-                        _buildDetailRow('Mileage',
-                            _formatNumber(car.fields.mileage) + ' km'),
-                        _buildDetailRow('STNK Expiry',
-                            _formatDate(car.fields.stnkDate)),
-                        _buildDetailRow(
-                            'Levy Expiry', _formatDate(car.fields.levyDate)),
-                        _buildDetailRow(
-                            'License Plate', car.fields.licensePlate),
-                        _buildDetailRow('Price Cash',
-                            currencyFormat.format(car.fields.priceCash)),
-                        _buildDetailRow('Price Credit',
-                            currencyFormat.format(car.fields.priceCredit)),
-                        _buildDetailRow(
-                            'Created at', _formatDate(car.fields.createdAt)),
-                        _buildDetailRow(
-                            'Last Update', _formatDate(car.fields.updatedAt)),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-
-                // Detail Showroom
-                showroom != null
-                    ? Card(
-                        elevation: 2.0,
+                      icon: const Icon(Icons.edit),
+                      label: const Text('Edit Car'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12.0, horizontal: 20.0),
+                        textStyle: const TextStyle(fontSize: 16),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Showroom Details',
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              const Divider(),
-                              _buildDetailRow(
-                                  'Showroom Name', showroom['showroom_name']),
-                              _buildDetailRow('Location',
-                                  showroom['showroom_location']),
-                              _buildDetailRow(
-                                  'Regency', showroom['showroom_regency']),
-                            ],
-                          ),
-                        ),
-                      )
-                    : const Card(
-                        elevation: 2.0,
-                        shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(10))),
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Text(
-                            'Showroom not found',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w500),
-                          ),
+                          borderRadius: BorderRadius.circular(8.0),
                         ),
                       ),
-                const SizedBox(height: 24.0),
-
-                // Tombol Edit untuk Admin
-                if (isAdmin)
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditCarPage(carId: car.pk),
-                        ),
-                      ).then((value) {
-                        if (value == true) {
-                          setState(() {
-                            _carDetailWithShowroom =
-                                fetchCarDetailWithShowroom();
-                          });
-                        }
-                      });
-                    },
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Edit Car'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12.0, horizontal: 20.0),
-                      textStyle: const TextStyle(fontSize: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             );
           }
         },

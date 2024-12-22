@@ -1,4 +1,4 @@
-// car_xpert/screens/detailcar/editcar.dart
+// editcar.dart
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -114,7 +114,7 @@ class _EditCarPageState extends State<EditCarPage> {
         const SnackBar(content: Text("Car updated successfully.")),
       );
       // Kembali ke halaman detail dan refresh data di halaman sebelumnya
-      Navigator.pop(context, true);
+      Navigator.pop(context, true); // Mengembalikan true
     } else {
       // Gagal update
       ScaffoldMessenger.of(context).showSnackBar(
