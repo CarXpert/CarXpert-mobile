@@ -122,7 +122,7 @@ class _ViewComparisonPageState extends State<ViewComparisonPage> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8.0),
-        Image.network(
+        Image.asset(
           'assets/images/${car.brand}.png',
           height: 150,
           errorBuilder: (context, error, stackTrace) {

@@ -120,7 +120,7 @@ class _BookingCardState extends State<BookingCard> {
                 child: ClipRRect(
                   borderRadius:
                       BorderRadius.circular(12.0), 
-                  child: Image.network(
+                  child: Image.asset(
                     'assets/images/${widget.booking.car.brand}.png',
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
@@ -128,12 +128,6 @@ class _BookingCardState extends State<BookingCard> {
                         Icons.image_not_supported,
                         size: 50,
                         color: Colors.grey,
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(
-                        child: CircularProgressIndicator(),
                       );
                     },
                   ),
