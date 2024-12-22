@@ -6,6 +6,9 @@
 
 > Berikut link microsoft app center kami : https://install.appcenter.ms/orgs/carxpert/apps/carxpert-mobile/distribution_groups/public 
 
+> Berikut link github apk release kami : https://github.com/CarXpert/CarXpert-mobile/releases/tag/1.0.0%2B1 
+
+
 > Proyek ini dibuat untuk memenuhi tugas Proyek Akhir Semester (PAS) pada mata kuliah Pemrograman Berbasis Platform yang diselenggarakan oleh Fakultas Ilmu Komputer, Universitas Indonesia Tahun Ajaran 2024/2025 Semester Gasal.
 
 ## 👥 Anggota Kelompok
