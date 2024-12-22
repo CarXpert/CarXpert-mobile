@@ -228,34 +228,43 @@ class _WishlistPageState extends State<WishlistPage> {
                                   Row(
                                     children: [
                                       Expanded(
-                                        child: ElevatedButton(
-                                            onPressed: () async {  
-                                            final shouldRefresh = await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => DetailCarPage(
-                                                  carId: item.car.carId,
-                                                ),
+                                      child: ElevatedButton(
+                                        onPressed: () async {  
+                                          final shouldRefresh = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => DetailCarPage(
+                                                carId: item.car.carId,
                                               ),
-                                            );
-                                            if (shouldRefresh == true) {
-                                              setState(() {
-                                                wishlist.removeWhere(
-                                                  (wishlistItem) => wishlistItem.car.carId == item.car.carId
-                                                );
-                                              });
-                                            }
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color.fromARGB(255, 7, 73, 128),
-                                            minimumSize: const Size(0, 30),
-                                          ),
-                                          child: const Text(
+                                            ),
+                                          );
+                                          if (shouldRefresh == true) {
+                                            setState(() {
+                                              wishlist.removeWhere(
+                                                (wishlistItem) => wishlistItem.car.carId == item.car.carId
+                                              );
+                                            });
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color.fromARGB(255, 7, 73, 128),
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                          minimumSize: Size(MediaQuery.of(context).size.width * 0.15, 30),
+                                          maximumSize: Size(MediaQuery.of(context).size.width * 0.3, 35),
+                                        ),
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
                                             'Details',
-                                            style: TextStyle(fontSize: 8, color: Colors.white),
+                                            style: TextStyle(
+                                              fontSize: MediaQuery.of(context).size.width * 0.025,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w500,
+                                            ),
                                           ),
                                         ),
                                       ),
+                                    ),
                                       const SizedBox(width: 6),
                                       IconButton(
                                         icon: const Icon(Icons.edit, size: 16),
